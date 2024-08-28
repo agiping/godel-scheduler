@@ -1,5 +1,26 @@
 # Define the builder stage
-FROM golang:1.21 as builder
+# build stage
+FROM debian:bookworm as builder
+
+# install on-demand tools
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    wget \
+    build-essential \
+    && apt-get clean
+
+# install Go 1.21
+# Set Go version
+ENV GO_VERSION=1.21.11
+
+# Download and install Go
+RUN wget https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz \
+    && tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz \
+    && rm go${GO_VERSION}.linux-amd64.tar.gz
+
+# set go env.
+ENV PATH="/usr/local/go/bin:${PATH}"
 
 WORKDIR /workspace
 
