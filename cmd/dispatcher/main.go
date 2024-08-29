@@ -31,7 +31,7 @@ import (
 )
 
 func main() {
-	fmt.Println("the first message from optimized godel scheduler by Baichuan!")
+	fmt.Println("[=== the second message from optimized godel scheduler by Baichuan! ===]")
 	rand.Seed(time.Now().UnixNano())
 
 	command := app.NewDispatcherCommand()
