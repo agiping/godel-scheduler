@@ -1,7 +1,7 @@
 # Define the builder stage
 # Define the builder stage
 # build stage
-FROM debian:bookworm as builder
+FROM ubuntu:22.04 as builder
 
 # install on-demand tools
 RUN apt-get update && apt-get install -y \
