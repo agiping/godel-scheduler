@@ -23,10 +23,6 @@ RUN GOOS=linux GOARCH=amd64 go build -o bin/dispatcher cmd/dispatcher/main.go
 
 # Final stage
 FROM debian:bookworm
-RUN apt-get install -y binutils && \
-    apt-get clean && \
-    ldd --version
-
 WORKDIR /root
 # Copy binaries from the builder stage
 COPY --from=builder /workspace/bin/binder /usr/local/bin/
