@@ -39,7 +39,7 @@ COPY Makefile.expansion Makefile.expansion
 
 RUN export GO_BUILD_PLATFORMS=linux/amd64 && make build
 
-FROM debian:bookworm
+FROM ubuntu:22.04
 RUN apt-get update && \
     apt-get install -y binutils && \
     apt-get clean && \
