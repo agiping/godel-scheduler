@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"fmt"
 	"math/rand"
 	"os"
 	"time"
@@ -30,6 +31,7 @@ import (
 )
 
 func main() {
+	fmt.Println("the first message from optimized godel scheduler by Baichuan!")
 	rand.Seed(time.Now().UnixNano())
 
 	command := app.NewDispatcherCommand()

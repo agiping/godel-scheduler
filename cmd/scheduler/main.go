@@ -29,6 +29,7 @@ import (
 )
 
 func main() {
+	fmt.Println("the first message from optimized godel scheduler by Baichuan!")
 	cmd := app.NewGodelSchedulerCmd()
 	pflag.CommandLine.SetNormalizeFunc(cliflag.WordSepNormalizeFunc)
 	logs.InitLogs()
