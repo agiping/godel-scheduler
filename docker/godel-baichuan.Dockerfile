@@ -23,8 +23,7 @@ RUN GOOS=linux GOARCH=amd64 go build -o bin/dispatcher cmd/dispatcher/main.go
 
 # Final stage
 FROM debian:bookworm
-RUN apt-get update && \
-    apt-get install -y binutils && \
+RUN apt-get install -y binutils && \
     apt-get clean && \
     ldd --version
 
