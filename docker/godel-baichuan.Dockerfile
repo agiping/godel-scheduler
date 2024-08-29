@@ -3,6 +3,8 @@ FROM golang:1.21 as builder
 
 WORKDIR /workspace
 
+ENV GOPROXY=https://goproxy.cn,direct
+
 COPY go.mod go.mod
 COPY go.sum go.sum
 RUN go mod download
