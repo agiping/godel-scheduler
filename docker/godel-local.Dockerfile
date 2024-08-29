@@ -1,27 +1,5 @@
 # Define the builder stage
-# Define the builder stage
-# build stage
-FROM ubuntu:22.04 as builder
-
-# install on-demand tools
-RUN apt-get update && apt-get install -y \
-    curl \
-    git \
-    wget \
-    build-essential \
-    && apt-get clean
-
-# install Go 1.21
-# Set Go version
-ENV GO_VERSION=1.21.11
-
-# Download and install Go
-RUN wget https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz \
-    && tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz \
-    && rm go${GO_VERSION}.linux-amd64.tar.gz
-
-# set go env.
-ENV PATH="/usr/local/go/bin:${PATH}"
+FROM golang:1.21 as builder
 
 WORKDIR /workspace
 
@@ -39,7 +17,7 @@ COPY Makefile.expansion Makefile.expansion
 
 RUN export GO_BUILD_PLATFORMS=linux/amd64 && make build
 
-FROM ubuntu:22.04
+FROM debian:bookworm
 RUN apt-get update && \
     apt-get install -y binutils && \
     apt-get clean && \
