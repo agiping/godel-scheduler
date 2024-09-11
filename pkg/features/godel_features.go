@@ -96,5 +96,5 @@ var defaultKubernetesFeatureGates = map[featuregate.Feature]featuregate.FeatureS
 	SchedulerConcurrentScheduling:           {Default: true, PreRelease: featuregate.Alpha},
 	SchedulerSubClusterConcurrentScheduling: {Default: true, PreRelease: featuregate.Alpha},
 	EnableColocation:                        {Default: false, PreRelease: featuregate.Alpha},
-	SupportRescheduling:                     {Default: false, PreRelease: featuregate.Alpha},
+	SupportRescheduling:                     {Default: true, PreRelease: featuregate.Alpha},
 }
