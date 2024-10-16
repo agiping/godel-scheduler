@@ -29,7 +29,6 @@ import (
 )
 
 func main() {
-	fmt.Println("[=== the second message from optimized godel scheduler by Baichuan! ===]")
 	cmd := app.NewGodelSchedulerCmd()
 	pflag.CommandLine.SetNormalizeFunc(cliflag.WordSepNormalizeFunc)
 	logs.InitLogs()
