@@ -19,6 +19,7 @@ package store
 import (
 	"sync"
 
+	flextopov1alpha1 "github.com/agiping/flextopo-api/pkg/apis/flextopo/v1alpha1"
 	nodev1alpha1 "github.com/kubewharf/godel-scheduler-api/pkg/apis/node/v1alpha1"
 	schedulingv1a1 "github.com/kubewharf/godel-scheduler-api/pkg/apis/scheduling/v1alpha1"
 	katalystv1alpha1 "github.com/kubewharf/katalyst-api/pkg/apis/node/v1alpha1"
@@ -250,4 +251,23 @@ func (s *CommonStoresSwitchImpl) DeleteMovement(movement *schedulingv1a1.Movemen
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.Range(func(s Store) error { return s.DeleteMovement(movement) })
+}
+
+// TODO: check what is the right thing to do for flex topo
+func (s *CommonStoresSwitchImpl) AddFlexTopo(ftopo *flextopov1alpha1.FlexTopo) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.Range(func(s Store) error { return s.AddFlexTopo(ftopo) })
+}
+
+func (s *CommonStoresSwitchImpl) UpdateFlexTopo(oldFtopo, newFtopo *flextopov1alpha1.FlexTopo) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.Range(func(s Store) error { return s.UpdateFlexTopo(oldFtopo, newFtopo) })
+}
+
+func (s *CommonStoresSwitchImpl) DeleteFlexTopo(ftopo *flextopov1alpha1.FlexTopo) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.Range(func(s Store) error { return s.DeleteFlexTopo(ftopo) })
 }

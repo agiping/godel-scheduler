@@ -17,6 +17,8 @@ limitations under the License.
 package config
 
 import (
+	flextopoclient "github.com/agiping/flextopo-api/pkg/client/clientset/versioned"
+	flextopoinformers "github.com/agiping/flextopo-api/pkg/client/informers/externalversions"
 	godelclient "github.com/kubewharf/godel-scheduler-api/pkg/client/clientset/versioned"
 	crdinformers "github.com/kubewharf/godel-scheduler-api/pkg/client/informers/externalversions"
 	katalystclient "github.com/kubewharf/katalyst-api/pkg/client/clientset/versioned"
@@ -41,6 +43,10 @@ type Config struct {
 
 	KatalystCrdClient          katalystclient.Interface
 	KatalystCrdInformerFactory katalystinformers.SharedInformerFactory
+
+	// flextopo crd client & informer
+	FlextopoCrdClient          flextopoclient.Interface
+	FlextopoCrdInformerFactory flextopoinformers.SharedInformerFactory
 
 	// EventBroadcaster is wrapper for event broadcaster, compatible with core.v1.Event and events.v1beta1.Event, used for Events.
 	// It will be removed once the migration for events from core API to events API is done.

@@ -36,6 +36,7 @@ import (
 	"k8s.io/client-go/util/workqueue"
 	"k8s.io/klog/v2"
 
+	flextopoinformers "github.com/agiping/flextopo-api/pkg/client/informers/externalversions"
 	godelclient "github.com/kubewharf/godel-scheduler-api/pkg/client/clientset/versioned"
 	crdinformers "github.com/kubewharf/godel-scheduler-api/pkg/client/informers/externalversions"
 	"github.com/kubewharf/godel-scheduler-api/pkg/client/listers/scheduling/v1alpha1"
@@ -114,6 +115,7 @@ func New(
 	informerFactory informers.SharedInformerFactory,
 	crdInformerFactory crdinformers.SharedInformerFactory,
 	katalystCrdInformerFactory katalystinformers.SharedInformerFactory,
+	flextopoInformerFactory flextopoinformers.SharedInformerFactory,
 	stopCh <-chan struct{},
 	recorder events.EventRecorder,
 	schedulerName *string,
@@ -176,7 +178,7 @@ func New(
 	binder.initializeReschedulingModule(crdInformerFactory, stopEverything, crdClient)
 
 	// Add all event handlers
-	addAllEventHandlers(binder, informerFactory, crdInformerFactory, katalystCrdInformerFactory)
+	addAllEventHandlers(binder, informerFactory, crdInformerFactory, katalystCrdInformerFactory, flextopoInformerFactory)
 
 	return binder, nil
 }

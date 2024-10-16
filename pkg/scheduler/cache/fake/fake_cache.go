@@ -17,6 +17,7 @@ limitations under the License.
 package fake
 
 import (
+	flextopov1alpha1 "github.com/agiping/flextopo-api/pkg/apis/flextopo/v1alpha1"
 	nodev1alpha1 "github.com/kubewharf/godel-scheduler-api/pkg/apis/node/v1alpha1"
 	schedulingv1a1 "github.com/kubewharf/godel-scheduler-api/pkg/apis/scheduling/v1alpha1"
 	katalystv1alpha1 "github.com/kubewharf/katalyst-api/pkg/apis/node/v1alpha1"
@@ -231,3 +232,7 @@ func (c *Cache) ScrapeCollectable(_ generationstore.RawStore) {
 func (c *Cache) AddMovement(movement *schedulingv1a1.Movement) error                    { return nil }
 func (c *Cache) UpdateMovement(oldMovement, newMovement *schedulingv1a1.Movement) error { return nil }
 func (c *Cache) DeleteMovement(movement *schedulingv1a1.Movement) error                 { return nil }
+
+func (c *Cache) AddFlexTopo(ftopo *flextopov1alpha1.FlexTopo) error                 { return nil }
+func (c *Cache) UpdateFlexTopo(oldFtopo, newFtopo *flextopov1alpha1.FlexTopo) error { return nil }
+func (c *Cache) DeleteFlexTopo(ftopo *flextopov1alpha1.FlexTopo) error              { return nil }

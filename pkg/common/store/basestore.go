@@ -19,6 +19,7 @@ package store
 import (
 	"sync"
 
+	flextopov1alpha1 "github.com/agiping/flextopo-api/pkg/apis/flextopo/v1alpha1"
 	nodev1alpha1 "github.com/kubewharf/godel-scheduler-api/pkg/apis/node/v1alpha1"
 	schedulingv1a1 "github.com/kubewharf/godel-scheduler-api/pkg/apis/scheduling/v1alpha1"
 	katalystv1alpha1 "github.com/kubewharf/katalyst-api/pkg/apis/node/v1alpha1"
@@ -91,3 +92,9 @@ func (i *BaseStoreImpl) DeleteMovement(movement *schedulingv1a1.Movement) error 
 func (i *BaseStoreImpl) AssumePod(podInfo *framework.CachePodInfo) error { return nil }
 func (i *BaseStoreImpl) ForgetPod(podInfo *framework.CachePodInfo) error { return nil }
 func (i *BaseStoreImpl) PeriodWorker(mu *sync.RWMutex)                   { return }
+
+func (i *BaseStoreImpl) AddFlexTopo(ftopo *flextopov1alpha1.FlexTopo) error { return nil }
+func (i *BaseStoreImpl) UpdateFlexTopo(oldFtopo, newFtopo *flextopov1alpha1.FlexTopo) error {
+	return nil
+}
+func (i *BaseStoreImpl) DeleteFlexTopo(ftopo *flextopov1alpha1.FlexTopo) error { return nil }

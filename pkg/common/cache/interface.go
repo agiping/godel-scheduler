@@ -17,6 +17,7 @@ limitations under the License.
 package cache
 
 import (
+	flextopov1alpha1 "github.com/agiping/flextopo-api/pkg/apis/flextopo/v1alpha1"
 	nodev1alpha1 "github.com/kubewharf/godel-scheduler-api/pkg/apis/node/v1alpha1"
 	schedulingv1a1 "github.com/kubewharf/godel-scheduler-api/pkg/apis/scheduling/v1alpha1"
 	katalystv1alpha1 "github.com/kubewharf/katalyst-api/pkg/apis/node/v1alpha1"
@@ -114,4 +115,11 @@ type ClusterEventsHandler interface {
 	AddMovement(movement *schedulingv1a1.Movement) error
 	UpdateMovement(oldMovement, newMovement *schedulingv1a1.Movement) error
 	DeleteMovement(movement *schedulingv1a1.Movement) error
+
+	// AddFlexTopo adds custom FlexTopo information about node
+	AddFlexTopo(ftopo *flextopov1alpha1.FlexTopo) error
+	// UpdateFlexTopo updates custom FlexTopo information about node.
+	UpdateFlexTopo(oldFtopo, newFtopo *flextopov1alpha1.FlexTopo) error
+	// RemoveFlexTopo removes custom FlexTopo information about node.
+	DeleteFlexTopo(ftopo *flextopov1alpha1.FlexTopo) error
 }

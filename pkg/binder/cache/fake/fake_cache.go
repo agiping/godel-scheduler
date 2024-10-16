@@ -20,6 +20,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	policy "k8s.io/api/policy/v1"
 
+	flextopov1alpha1 "github.com/agiping/flextopo-api/pkg/apis/flextopo/v1alpha1"
 	nodev1alpha1 "github.com/kubewharf/godel-scheduler-api/pkg/apis/node/v1alpha1"
 	schedulingv1a1 "github.com/kubewharf/godel-scheduler-api/pkg/apis/scheduling/v1alpha1"
 	commoncache "github.com/kubewharf/godel-scheduler/pkg/common/cache"
@@ -214,5 +215,20 @@ func (c *Cache) UpdateMovement(oldMovement, newMovement *schedulingv1a1.Movement
 }
 
 func (c *Cache) DeleteMovement(movement *schedulingv1a1.Movement) error {
+	return nil
+}
+
+// AddCNR adds custom resource information about node
+func (c *Cache) AddFlexTopo(ftopo *flextopov1alpha1.FlexTopo) error {
+	return nil
+}
+
+// UpdateCNR updates custom resource information about node.
+func (c *Cache) UpdateFlexTopo(oldFtopo, newFtopo *flextopov1alpha1.FlexTopo) error {
+	return nil
+}
+
+// DeleteCNR removes custom resource information about node.
+func (c *Cache) DeleteFlexTopo(ftopo *flextopov1alpha1.FlexTopo) error {
 	return nil
 }

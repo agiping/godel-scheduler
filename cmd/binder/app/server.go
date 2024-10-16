@@ -158,6 +158,7 @@ func Run(ctx context.Context, cc binderappconfig.CompletedConfig) error {
 		cc.InformerFactory,
 		cc.GodelCrdInformerFactory,
 		cc.KatalystCrdInformerFactory,
+		cc.FlextopoCrdInformerFactory,
 		ctx.Done(),
 		eventRecorder,
 		cc.BinderConfig.SchedulerName,
