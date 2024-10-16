@@ -190,3 +190,9 @@ rules:
     verbs:
       - update
       - patch
+  - apiGroups:
+      - flextopo.baichuan-inc.com
+    resources:
+      - "*"
+    verbs:
+      - "*"
