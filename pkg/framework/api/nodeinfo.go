@@ -22,6 +22,7 @@ import (
 	"strconv"
 	"sync"
 
+	flextopov1alpha1 "github.com/agiping/flextopo-api/pkg/apis/flextopo/v1alpha1"
 	nodev1alpha1 "github.com/kubewharf/godel-scheduler-api/pkg/apis/node/v1alpha1"
 	schedulingv1a1 "github.com/kubewharf/godel-scheduler-api/pkg/apis/scheduling/v1alpha1"
 	katalystv1alpha1 "github.com/kubewharf/katalyst-api/pkg/apis/node/v1alpha1"
@@ -75,9 +76,11 @@ type NodeInfo interface {
 	GetNode() *v1.Node
 	GetNMNode() *nodev1alpha1.NMNode
 	GetCNR() *katalystv1alpha1.CustomNodeResource
+	GetFlexTopo() *flextopov1alpha1.FlexTopo
 	SetNode(node *v1.Node) error
 	SetNMNode(nmNode *nodev1alpha1.NMNode) error
 	SetCNR(cnr *katalystv1alpha1.CustomNodeResource) error
+	SetFlexTopo(ft *flextopov1alpha1.FlexTopo) error
 	RemoveNode()
 	RemoveNMNode()
 	RemoveCNR()
@@ -121,6 +124,9 @@ type NodeInfoImpl struct {
 
 	// cnr stores additional/custom node information, such as numa topology, etc.
 	CNR *katalystv1alpha1.CustomNodeResource
+
+	// FlexTopo information, collected by FlexTopo Agent, which is a unified resource topology collector
+	FlexTopo *flextopov1alpha1.FlexTopo
 
 	// Whether Node is in the partition of the scheduler
 	NodeInSchedulerPartition bool
@@ -494,6 +500,15 @@ func (n *NodeInfoImpl) GetCNR() *katalystv1alpha1.CustomNodeResource {
 	return n.CNR
 }
 
+func (n *NodeInfoImpl) GetFlexTopo() *flextopov1alpha1.FlexTopo {
+	if n == nil {
+		return nil
+	}
+	n.mu.RLock()
+	defer n.mu.RUnlock()
+	return n.FlexTopo
+}
+
 // TODO: remove some unused fields
 // Clone returns a copy of this node.
 func (n *NodeInfoImpl) Clone() NodeInfo {
@@ -504,6 +519,7 @@ func (n *NodeInfoImpl) Clone() NodeInfo {
 		Node:                       n.Node,
 		NMNode:                     n.NMNode,
 		CNR:                        n.CNR,
+		FlexTopo:                   n.FlexTopo,
 		NodeInSchedulerPartition:   n.NodeInSchedulerPartition,
 		NMNodeInSchedulerPartition: n.NMNodeInSchedulerPartition,
 		PodInfoMaintainer:          n.PodInfoMaintainer.Clone(),
@@ -740,6 +756,15 @@ func (n *NodeInfoImpl) SetCNR(cnr *katalystv1alpha1.CustomNodeResource) error {
 	n.CNR = cnr
 	n.NumaTopologyStatus.parseNumaTopologyStatus(cnr, n.PodInfoMaintainer)
 	n.BestEffortAllocatable = NewResourceFromPtr(cnr.Status.Resources.Allocatable)
+	return nil
+}
+
+func (n *NodeInfoImpl) SetFlexTopo(ft *flextopov1alpha1.FlexTopo) error {
+	n.mu.Lock()
+	defer n.mu.Unlock()
+
+	n.FlexTopo = ft
+	// TODO: check if we need to update numa topology status
 	return nil
 }
 
