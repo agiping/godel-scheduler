@@ -19,6 +19,8 @@ package binder
 import (
 	"fmt"
 
+	flextopov1alpha1 "github.com/agiping/flextopo-api/pkg/apis/flextopo/v1alpha1"
+	flextopoinformers "github.com/agiping/flextopo-api/pkg/client/informers/externalversions"
 	nodev1alpha1 "github.com/kubewharf/godel-scheduler-api/pkg/apis/node/v1alpha1"
 	schedulingv1a1 "github.com/kubewharf/godel-scheduler-api/pkg/apis/scheduling/v1alpha1"
 	crdinformers "github.com/kubewharf/godel-scheduler-api/pkg/client/informers/externalversions"
@@ -513,6 +515,60 @@ func (binder *Binder) onPdbDelete(obj interface{}) {
 	}
 }
 
+// FlexTopo - pingzhang
+func (binder *Binder) addFlexTopoToCache(obj interface{}) {
+	flexTopo, ok := obj.(*flextopov1alpha1.FlexTopo)
+	if !ok {
+		klog.InfoS("Failed to convert to *v1alpha1.FlexTopo", "object", obj)
+		return
+	}
+
+	if err := binder.BinderCache.AddFlexTopo(flexTopo); err != nil {
+		klog.InfoS("Failed to execute binder cache AddFlexTopo", "err", err)
+		return
+	}
+}
+
+func (binder *Binder) updateFlexTopoInCache(oldObj, newObj interface{}) {
+	oldFlexTopo, ok := oldObj.(*flextopov1alpha1.FlexTopo)
+	if !ok {
+		klog.InfoS("Failed to convert oldObj to *v1alpha1.FlexTopo", "oldObj", oldObj)
+		return
+	}
+	newFlexTopo, ok := newObj.(*flextopov1alpha1.FlexTopo)
+	if !ok {
+		klog.InfoS("Failed to convert newObj to *v1alpha1.FlexTopo", "newObj", newObj)
+		return
+	}
+
+	if err := binder.BinderCache.UpdateFlexTopo(oldFlexTopo, newFlexTopo); err != nil {
+		klog.InfoS("Failed to execute binder cache UpdateFlexTopo", "err", err)
+	}
+}
+
+func (binder *Binder) deleteFlexTopoFromCache(obj interface{}) {
+	var flexTopo *flextopov1alpha1.FlexTopo
+	switch t := obj.(type) {
+	case *flextopov1alpha1.FlexTopo:
+		flexTopo = t
+	case cache.DeletedFinalStateUnknown:
+		var ok bool
+		flexTopo, ok = t.Obj.(*flextopov1alpha1.FlexTopo)
+		if !ok {
+			klog.InfoS("Failed to convert to *v1alpha1.FlexTopo", "object", t.Obj)
+			return
+		}
+	default:
+		klog.InfoS("Failed to convert to *v1alpha1.FlexTopo", "type", t)
+		return
+	}
+
+	klog.V(3).InfoS("Found a delete event for flexTopo", "flexTopo", flexTopo.Name)
+	if err := binder.BinderCache.DeleteFlexTopo(flexTopo); err != nil {
+		klog.InfoS("Failed to execute binder cache DeleteFlexTopo", "err", err)
+	}
+}
+
 // addAllEventHandlers is a helper function used in tests and in Prebinder
 // to add event handlers for various informers.
 func addAllEventHandlers(
@@ -520,6 +576,7 @@ func addAllEventHandlers(
 	informerFactory informers.SharedInformerFactory,
 	crdInformerFactory crdinformers.SharedInformerFactory,
 	katalystInformerFactory katalystinformers.SharedInformerFactory,
+	flextopoInformerFactory flextopoinformers.SharedInformerFactory,
 ) {
 	// scheduled pod cache
 	informerFactory.Core().V1().Pods().Informer().AddEventHandler(
@@ -578,6 +635,15 @@ func addAllEventHandlers(
 			AddFunc:    binder.addPodGroup,
 			UpdateFunc: binder.updatePodGroup,
 			DeleteFunc: binder.deletePodGroup,
+		},
+	)
+
+	// add FlexTopo resource event listener
+	flextopoInformerFactory.Flextopo().V1alpha1().FlexTopos().Informer().AddEventHandler(
+		cache.ResourceEventHandlerFuncs{
+			AddFunc:    binder.addFlexTopoToCache,
+			UpdateFunc: binder.updateFlexTopoInCache,
+			DeleteFunc: binder.deleteFlexTopoFromCache,
 		},
 	)
 }

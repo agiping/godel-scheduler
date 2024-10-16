@@ -2,6 +2,8 @@ module github.com/kubewharf/godel-scheduler
 
 go 1.21.4
 
+require github.com/agiping/flextopo-api v0.1.3 
+
 require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/evanphx/json-patch v4.12.0+incompatible
