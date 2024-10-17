@@ -19,6 +19,7 @@ package nodestore
 import (
 	"fmt"
 
+	flextopov1alpha1 "github.com/agiping/flextopo-api/pkg/apis/flextopo/v1alpha1"
 	nodev1alpha1 "github.com/kubewharf/godel-scheduler-api/pkg/apis/node/v1alpha1"
 	katalystv1alpha1 "github.com/kubewharf/katalyst-api/pkg/apis/node/v1alpha1"
 	v1 "k8s.io/api/core/v1"
@@ -607,4 +608,53 @@ func (s *NodeStore) removeNodeImageStates(node *v1.Node) {
 			}
 		}
 	}
+}
+
+func (s *NodeStore) AddFlexTopo(flextopo *flextopov1alpha1.FlexTopo) error {
+	var nodeInfo framework.NodeInfo
+	if obj := s.Get(flextopo.Name); obj != nil {
+		nodeInfo = obj
+	} else {
+		nodeInfo = framework.NewNodeInfo()
+	}
+	err := nodeInfo.SetFlexTopo(flextopo)
+	s.Set(flextopo.Name, nodeInfo)
+	return err
+}
+
+// UpdateFlexTopo updates a FlexTopo in the node store.
+// TODO: check if the logic of UpdateFlexTopo is correct.
+// Should we delete the old Flextopo if the name of new and old is not the same?
+func (s *NodeStore) UpdateFlexTopo(oldFlextopo, newFlextopo *flextopov1alpha1.FlexTopo) error {
+	var nodeInfo framework.NodeInfo
+	if obj := s.Get(newFlextopo.Name); obj != nil {
+		nodeInfo = obj
+	} else {
+		nodeInfo = framework.NewNodeInfo()
+	}
+	err := nodeInfo.SetFlexTopo(newFlextopo)
+	s.Set(newFlextopo.Name, nodeInfo)
+	return err
+}
+
+// DeleteFlexTopo deletes a FlexTopo from the node store.
+// TODO: validate the logic of DeleteFlexTopo.
+func (s *NodeStore) DeleteFlexTopo(flextopo *flextopov1alpha1.FlexTopo) error {
+	var nodeInfo framework.NodeInfo
+	if obj := s.Get(flextopo.Name); obj != nil {
+		nodeInfo = obj
+	} else {
+		return fmt.Errorf("node %v is not found", flextopo.Name)
+	}
+	nodeInfo.RemoveFlexTopo()
+	if nodeInfo.NumPods() == 0 && nodeInfo.ObjectIsNil() {
+		// This node was previously a node with residual pods, and the current pod is the last pod it has left.
+		// We will delete this node and remove it from `NodeStore.Deleted`.
+		// This can only happen in cache.NodeStore.
+		s.Deleted.Delete(flextopo.Name)
+		s.Store.Delete(flextopo.Name)
+	} else {
+		s.Set(flextopo.Name, nodeInfo)
+	}
+	return nil
 }

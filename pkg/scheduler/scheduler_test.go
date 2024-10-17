@@ -38,6 +38,8 @@ import (
 	clienttesting "k8s.io/client-go/testing"
 	"k8s.io/client-go/tools/events"
 
+	flextopoclientfake "github.com/agiping/flextopo-api/pkg/client/clientset/versioned/fake"
+	flextopoinformers "github.com/agiping/flextopo-api/pkg/client/informers/externalversions"
 	"github.com/kubewharf/godel-scheduler-api/pkg/apis/scheduling/v1alpha1"
 	godelclientfake "github.com/kubewharf/godel-scheduler-api/pkg/client/clientset/versioned/fake"
 	crdinformers "github.com/kubewharf/godel-scheduler-api/pkg/client/informers/externalversions"
@@ -75,9 +77,11 @@ func TestSchedulerCreation(t *testing.T) {
 			client := clientsetfake.NewSimpleClientset()
 			crdClient := godelclientfake.NewSimpleClientset()
 			katalystCrdClient := katalystclientfake.NewSimpleClientset()
+			flextopoCrdClient := flextopoclientfake.NewSimpleClientset()
 			informerFactory := informers.NewSharedInformerFactory(client, 0)
 			crdInformerFactory := crdinformers.NewSharedInformerFactory(crdClient, 0)
 			katalystInformerFactory := katalystinformers.NewSharedInformerFactory(katalystCrdClient, 0)
+			flextopoInformerFactory := flextopoinformers.NewSharedInformerFactory(flextopoCrdClient, 0)
 
 			eventBroadcaster := events.NewBroadcaster(&events.EventSinkImpl{Interface: client.EventsV1()})
 			eventRecorder := eventBroadcaster.NewRecorder(scheme.Scheme, testSchedulerName)
@@ -92,6 +96,7 @@ func TestSchedulerCreation(t *testing.T) {
 				informerFactory,
 				crdInformerFactory,
 				katalystInformerFactory,
+				flextopoInformerFactory,
 				stopCh,
 				eventRecorder,
 			)

@@ -21,6 +21,7 @@ import (
 	"math/rand"
 	"time"
 
+	flextopoinformers "github.com/agiping/flextopo-api/pkg/client/informers/externalversions"
 	godelclient "github.com/kubewharf/godel-scheduler-api/pkg/client/clientset/versioned"
 	crdinformers "github.com/kubewharf/godel-scheduler-api/pkg/client/informers/externalversions"
 	"github.com/kubewharf/godel-scheduler-api/pkg/client/listers/scheduling/v1alpha1"
@@ -101,6 +102,7 @@ func New(
 	informerFactory informers.SharedInformerFactory,
 	crdInformerFactory crdinformers.SharedInformerFactory,
 	katalystCrdInformerFactory katalystinformers.SharedInformerFactory,
+	flextopoInformerFactory flextopoinformers.SharedInformerFactory,
 	stopCh <-chan struct{},
 	recorder events.EventRecorder,
 	opts ...Option) (*Scheduler, error,
@@ -188,7 +190,7 @@ func New(
 	}
 
 	// 4. Add event handlers
-	addAllEventHandlers(sched, informerFactory, crdInformerFactory, katalystCrdInformerFactory)
+	addAllEventHandlers(sched, informerFactory, crdInformerFactory, katalystCrdInformerFactory, flextopoInformerFactory)
 
 	return sched, nil
 }

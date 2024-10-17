@@ -253,7 +253,7 @@ func (s *CommonStoresSwitchImpl) DeleteMovement(movement *schedulingv1a1.Movemen
 	return s.Range(func(s Store) error { return s.DeleteMovement(movement) })
 }
 
-// TODO: check what is the right thing to do for flex topo
+// TODO: check what is the right thing to do for flextopo
 func (s *CommonStoresSwitchImpl) AddFlexTopo(ftopo *flextopov1alpha1.FlexTopo) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()

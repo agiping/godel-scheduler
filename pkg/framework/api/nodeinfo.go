@@ -84,6 +84,7 @@ type NodeInfo interface {
 	RemoveNode()
 	RemoveNMNode()
 	RemoveCNR()
+	RemoveFlexTopo()
 	ObjectIsNil() bool
 	SetNodePartition(inSchedulerPartition bool) error
 
@@ -507,6 +508,13 @@ func (n *NodeInfoImpl) GetFlexTopo() *flextopov1alpha1.FlexTopo {
 	n.mu.RLock()
 	defer n.mu.RUnlock()
 	return n.FlexTopo
+}
+
+func (n *NodeInfoImpl) RemoveFlexTopo() {
+	n.mu.Lock()
+	defer n.mu.Unlock()
+	n.FlexTopo = nil
+	// TODO: Should we post-process status?
 }
 
 // TODO: remove some unused fields

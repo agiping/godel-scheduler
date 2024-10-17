@@ -23,6 +23,8 @@ import (
 	"strconv"
 	"time"
 
+	flextopoclient "github.com/agiping/flextopo-api/pkg/client/clientset/versioned"
+	flextopoinformers "github.com/agiping/flextopo-api/pkg/client/informers/externalversions"
 	godelclient "github.com/kubewharf/godel-scheduler-api/pkg/client/clientset/versioned"
 	godelclientscheme "github.com/kubewharf/godel-scheduler-api/pkg/client/clientset/versioned/scheme"
 	crdinformers "github.com/kubewharf/godel-scheduler-api/pkg/client/informers/externalversions"
@@ -428,7 +430,7 @@ func (o *Options) Config() (*schedulerappconfig.Config, error) {
 
 	// Prepare kube clients.
 	// client, leaderElectionClient, eventClient, err := createClients(c.ComponentConfig.ClientConnection, o.Master, c.ComponentConfig.LeaderElection.RenewDeadline.Duration)
-	client, leaderElectionClient, eventClient, godelCrdClient, katalystCrdClient, err := createClients(c.ComponentConfig.ClientConnection, o.Master, c.ComponentConfig.LeaderElection.RenewDeadline.Duration)
+	client, leaderElectionClient, eventClient, godelCrdClient, katalystCrdClient, flextopoCrdClient, err := createClients(c.ComponentConfig.ClientConnection, o.Master, c.ComponentConfig.LeaderElection.RenewDeadline.Duration)
 	if err != nil {
 		return nil, err
 	}
@@ -453,6 +455,9 @@ func (o *Options) Config() (*schedulerappconfig.Config, error) {
 
 	c.KatalystCrdClient = katalystCrdClient
 	c.KatalystCrdInformerFactory = katalystinformers.NewSharedInformerFactory(c.KatalystCrdClient, 0)
+
+	c.FlextopoCrdClient = flextopoCrdClient
+	c.FlextopoCrdInformerFactory = flextopoinformers.NewSharedInformerFactory(c.FlextopoCrdClient, 0)
 
 	c.LeaderElection = leaderElectionConfig
 
@@ -494,7 +499,7 @@ func makeLeaderElectionConfig(config componentbaseconfig.LeaderElectionConfigura
 
 // createClients creates a kube client and an event client from the given config and masterOverride.
 // TODO remove masterOverride when CLI flags are removed.
-func createClients(config componentbaseconfig.ClientConnectionConfiguration, masterOverride string, timeout time.Duration) (clientset.Interface, clientset.Interface, clientset.Interface, godelclient.Interface, katalystclient.Interface, error) {
+func createClients(config componentbaseconfig.ClientConnectionConfiguration, masterOverride string, timeout time.Duration) (clientset.Interface, clientset.Interface, clientset.Interface, godelclient.Interface, katalystclient.Interface, flextopoclient.Interface, error) {
 	if len(config.Kubeconfig) == 0 && len(masterOverride) == 0 {
 		klog.InfoS("WARN: Neither --kubeconfig nor --master was specified. Using default API client. This might not work")
 	}
@@ -505,7 +510,7 @@ func createClients(config componentbaseconfig.ClientConnectionConfiguration, mas
 		&clientcmd.ClientConfigLoadingRules{ExplicitPath: config.Kubeconfig},
 		&clientcmd.ConfigOverrides{ClusterInfo: clientcmdapi.Cluster{Server: masterOverride}}).ClientConfig()
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	kubeConfig.DisableCompression = true
@@ -516,7 +521,7 @@ func createClients(config componentbaseconfig.ClientConnectionConfiguration, mas
 
 	client, err := clientset.NewForConfig(restclient.AddUserAgent(kubeConfig, "scheduler"))
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	// shallow copy, do not modify the kubeConfig.Timeout.
@@ -524,13 +529,13 @@ func createClients(config componentbaseconfig.ClientConnectionConfiguration, mas
 	restConfig.Timeout = timeout
 	leaderElectionClient, err := clientset.NewForConfig(restclient.AddUserAgent(&restConfig, "leader-election"))
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	utilruntime.Must(godelclientscheme.AddToScheme(clientsetscheme.Scheme))
 	eventClient, err := clientset.NewForConfig(kubeConfig)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	// This creates a client, first loading any specified kubeconfig
@@ -539,7 +544,7 @@ func createClients(config componentbaseconfig.ClientConnectionConfiguration, mas
 		&clientcmd.ClientConfigLoadingRules{ExplicitPath: config.Kubeconfig},
 		&clientcmd.ConfigOverrides{ClusterInfo: clientcmdapi.Cluster{Server: masterOverride}}).ClientConfig()
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	crdKubeConfig.DisableCompression = true
@@ -548,9 +553,11 @@ func createClients(config componentbaseconfig.ClientConnectionConfiguration, mas
 
 	godelCrdClient, err := godelclient.NewForConfig(restclient.AddUserAgent(crdKubeConfig, "scheduler"))
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	katalystCrdClient, err := katalystclient.NewForConfig(restclient.AddUserAgent(crdKubeConfig, "scheduler"))
-	return client, leaderElectionClient, eventClient, godelCrdClient, katalystCrdClient, nil
+	flextopoCrdClient, err := flextopoclient.NewForConfig(restclient.AddUserAgent(crdKubeConfig, "scheduler"))
+
+	return client, leaderElectionClient, eventClient, godelCrdClient, katalystCrdClient, flextopoCrdClient, nil
 }

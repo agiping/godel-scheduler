@@ -1,3 +1,3 @@
 package flextopo
 
-// core logic of topology aware scheduling
+// core logic of topology aware scheduling/preemption

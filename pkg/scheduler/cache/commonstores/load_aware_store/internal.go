@@ -194,3 +194,6 @@ func cloneAllPods(allPods map[string]podBasicInfo) map[string]podBasicInfo {
 	}
 	return ret
 }
+
+// TODO: check if we need to add FlexTopo related fields in PodMetricInfos and NodeMetricInfo
+// Owner: Ping Zhang

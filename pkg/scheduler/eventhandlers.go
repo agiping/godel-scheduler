@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"reflect"
 
+	flextopov1alpha1 "github.com/agiping/flextopo-api/pkg/apis/flextopo/v1alpha1"
+	flextopoinformers "github.com/agiping/flextopo-api/pkg/client/informers/externalversions"
 	nodev1alpha1 "github.com/kubewharf/godel-scheduler-api/pkg/apis/node/v1alpha1"
 	schedulingv1a1 "github.com/kubewharf/godel-scheduler-api/pkg/apis/scheduling/v1alpha1"
 	crdinformers "github.com/kubewharf/godel-scheduler-api/pkg/client/informers/externalversions"
@@ -833,6 +835,67 @@ func (sched *Scheduler) deleteMovement(obj interface{}) {
 	sched.commonCache.DeleteMovement(movement)
 }
 
+func (sched *Scheduler) addFlexTopoToCache(obj interface{}) {
+	flextopo, ok := obj.(*flextopov1alpha1.FlexTopo)
+	if !ok {
+		klog.InfoS("Failed to convert to *flextopov1alpha1.FlexTopo", "object", obj)
+		return
+	}
+
+	klog.V(5).InfoS("Detected an add event for flextopo", "flextopo", flextopo.Name)
+
+	if err := sched.commonCache.AddFlexTopo(flextopo); err != nil {
+		klog.InfoS("Failed to add FlexTopo to Scheduler cache", "err", err)
+		return
+	}
+
+	// TODO: sched.ScheduleSwitch.Process()
+	//       ParseSwitchTypeForFlexTopo(flextopo)
+	// Owner: Ping Zhang
+}
+
+func (sched *Scheduler) updateFlexTopoInCache(oldObj, newObj interface{}) {
+	oldFtopo, ok := oldObj.(*flextopov1alpha1.FlexTopo)
+	if !ok {
+		klog.InfoS("Failed to convert to *flextopov1alpha1.FlexTopo", "oldObject", oldObj)
+		return
+	}
+	newFtopo, ok := newObj.(*flextopov1alpha1.FlexTopo)
+	if !ok {
+		klog.InfoS("Failed to convert to *flextopov1alpha1.FlexTopo", "newObject", newObj)
+		return
+	}
+
+	klog.V(5).InfoS("Detected an update event for flextopo", "flextopo", newFtopo.Name)
+
+	if err := sched.commonCache.UpdateFlexTopo(oldFtopo, newFtopo); err != nil {
+		klog.InfoS("Failed to update FlexTopo to Scheduler cache", "err", err)
+		return
+	}
+
+	// TODO: sched.ScheduleSwitch.Process()
+	//       ParseSwitchTypeForFlexTopo(newFtopo)
+	// Owner: Ping Zhang
+}
+
+func (sched *Scheduler) deleteFlexTopoFromCache(obj interface{}) {
+	flextopo, ok := obj.(*flextopov1alpha1.FlexTopo)
+	if !ok {
+		klog.InfoS("Failed to convert to *flextopov1alpha1.FlexTopo", "object", obj)
+		return
+	}
+
+	klog.V(5).InfoS("Detected a delete event for flextopo", "flextopo", flextopo.Name)
+
+	if err := sched.commonCache.DeleteFlexTopo(flextopo); err != nil {
+		klog.InfoS("Failed to delete FlexTopo from Scheduler cache", "err", err)
+		return
+	}
+
+	// TODO: Should we process the case of cache.DeletedFinalStateUnknown?
+	// Owner: Ping Zhang
+}
+
 // addAllEventHandlers is a helper function used in tests and in Scheduler
 // to add event handlers for various informers.
 func addAllEventHandlers(
@@ -840,6 +903,7 @@ func addAllEventHandlers(
 	informerFactory informers.SharedInformerFactory,
 	crdInformerFactory crdinformers.SharedInformerFactory,
 	katalystCrdInformerFactory katalystinformers.SharedInformerFactory,
+	flextopoInformerFactory flextopoinformers.SharedInformerFactory,
 ) {
 	podInformer := informerFactory.Core().V1().Pods().Informer()
 	podInformer.AddEventHandler(
@@ -986,4 +1050,12 @@ func addAllEventHandlers(
 			},
 		)
 	}
+
+	flextopoInformerFactory.Flextopo().V1alpha1().FlexTopos().Informer().AddEventHandler(
+		cache.ResourceEventHandlerFuncs{
+			AddFunc:    sched.addFlexTopoToCache,
+			UpdateFunc: sched.updateFlexTopoInCache,
+			DeleteFunc: sched.deleteFlexTopoFromCache,
+		},
+	)
 }

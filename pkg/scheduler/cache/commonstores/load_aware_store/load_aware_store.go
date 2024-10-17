@@ -288,3 +288,6 @@ func (s *LoadAwareStore) GetLoadAwareNodeUsage(nodeName string, resourceType pod
 		RequestMEM:      podMetricsInfos.RequestMEM,
 	}
 }
+
+// TODO: check if we need to process FlexTopo in loadawarestore
+// Owner: Ping Zhang

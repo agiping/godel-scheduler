@@ -23,6 +23,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	flextopov1alpha1 "github.com/agiping/flextopo-api/pkg/apis/flextopo/v1alpha1"
 	nodev1alpha1 "github.com/kubewharf/godel-scheduler-api/pkg/apis/node/v1alpha1"
 	katalystv1alpha1 "github.com/kubewharf/katalyst-api/pkg/apis/node/v1alpha1"
 	v1 "k8s.io/api/core/v1"
@@ -387,6 +388,18 @@ func ParseSwitchTypeForCNR(cnr *katalystv1alpha1.CustomNodeResource) framework.S
 	if utilfeature.DefaultFeatureGate.Enabled(features.SchedulerSubClusterConcurrentScheduling) {
 		return st |
 			framework.ParseSwitchTypeFromSubCluster(cnr.Labels[framework.GetGlobalSubClusterKey()])
+	}
+	return st
+}
+
+// ParseSwitchTypeForFlexTopo -
+// Owner: Ping Zhang
+// TODO: check the motivation of this function
+func ParseSwitchTypeForFlexTopo(flextopo *flextopov1alpha1.FlexTopo) framework.SwitchType {
+	st := framework.DefaultSubClusterSwitchType
+	if utilfeature.DefaultFeatureGate.Enabled(features.SchedulerSubClusterConcurrentScheduling) {
+		return st |
+			framework.ParseSwitchTypeFromSubCluster(flextopo.Labels[framework.GetGlobalSubClusterKey()])
 	}
 	return st
 }
