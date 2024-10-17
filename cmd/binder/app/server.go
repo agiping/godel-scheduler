@@ -200,12 +200,14 @@ func Run(ctx context.Context, cc binderappconfig.CompletedConfig) error {
 	cc.GodelCrdInformerFactory.Start(ctx.Done())
 	cc.InformerFactory.Start(ctx.Done())
 	cc.KatalystCrdInformerFactory.Start(ctx.Done())
+	cc.FlextopoCrdInformerFactory.Start(ctx.Done())
 
 	// Wait for all caches to sync before scheduling.
 	// should wait for cache sync first.
 	cc.GodelCrdInformerFactory.WaitForCacheSync(ctx.Done())
 	cc.InformerFactory.WaitForCacheSync(ctx.Done())
 	cc.KatalystCrdInformerFactory.WaitForCacheSync(ctx.Done())
+	cc.FlextopoCrdInformerFactory.WaitForCacheSync(ctx.Done())
 	cache.WaitForCacheSync(ctx.Done(), pgInformer.Informer().HasSynced)
 
 	run := func(ctx context.Context) {
