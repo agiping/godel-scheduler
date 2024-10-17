@@ -523,6 +523,7 @@ func (binder *Binder) addFlexTopoToCache(obj interface{}) {
 		return
 	}
 
+	klog.V(5).InfoS("Detected an add event for flextopo", "flextopo", flexTopo.Name)
 	if err := binder.BinderCache.AddFlexTopo(flexTopo); err != nil {
 		klog.InfoS("Failed to execute binder cache AddFlexTopo", "err", err)
 		return
@@ -541,6 +542,7 @@ func (binder *Binder) updateFlexTopoInCache(oldObj, newObj interface{}) {
 		return
 	}
 
+	klog.V(5).InfoS("Detected an update event for flextopo", "flextopo", newFlexTopo.Name)
 	if err := binder.BinderCache.UpdateFlexTopo(oldFlexTopo, newFlexTopo); err != nil {
 		klog.InfoS("Failed to execute binder cache UpdateFlexTopo", "err", err)
 	}
@@ -639,6 +641,7 @@ func addAllEventHandlers(
 	)
 
 	// add FlexTopo resource event listener
+	klog.InfoS("================ Adding FlexTopo resource event listener ====================")
 	flextopoInformerFactory.Flextopo().V1alpha1().FlexTopos().Informer().AddEventHandler(
 		cache.ResourceEventHandlerFuncs{
 			AddFunc:    binder.addFlexTopoToCache,
@@ -646,4 +649,5 @@ func addAllEventHandlers(
 			DeleteFunc: binder.deleteFlexTopoFromCache,
 		},
 	)
+	klog.InfoS("================ FlexTopo resource event listener added ====================")
 }
