@@ -641,7 +641,6 @@ func addAllEventHandlers(
 	)
 
 	// add FlexTopo resource event listener
-	klog.InfoS("================ Adding FlexTopo resource event listener ====================")
 	flextopoInformerFactory.Flextopo().V1alpha1().FlexTopos().Informer().AddEventHandler(
 		cache.ResourceEventHandlerFuncs{
 			AddFunc:    binder.addFlexTopoToCache,
@@ -649,5 +648,4 @@ func addAllEventHandlers(
 			DeleteFunc: binder.deleteFlexTopoFromCache,
 		},
 	)
-	klog.InfoS("================ FlexTopo resource event listener added ====================")
 }

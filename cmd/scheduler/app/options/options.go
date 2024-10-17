@@ -557,7 +557,14 @@ func createClients(config componentbaseconfig.ClientConnectionConfiguration, mas
 	}
 
 	katalystCrdClient, err := katalystclient.NewForConfig(restclient.AddUserAgent(crdKubeConfig, "scheduler"))
+	if err != nil {
+		return nil, nil, nil, nil, nil, nil, err
+	}
+
 	flextopoCrdClient, err := flextopoclient.NewForConfig(restclient.AddUserAgent(crdKubeConfig, "scheduler"))
+	if err != nil {
+		return nil, nil, nil, nil, nil, nil, err
+	}
 
 	return client, leaderElectionClient, eventClient, godelCrdClient, katalystCrdClient, flextopoCrdClient, nil
 }
