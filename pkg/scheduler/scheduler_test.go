@@ -129,9 +129,11 @@ func TestInitSchedulerCRD(t *testing.T) {
 			client := clientsetfake.NewSimpleClientset()
 			crdClient := godelclientfake.NewSimpleClientset()
 			katalystCrdClient := katalystclientfake.NewSimpleClientset()
+			flextopoCrdClient := flextopoclientfake.NewSimpleClientset()
 			informerFactory := informers.NewSharedInformerFactory(client, 0)
 			crdInformerFactory := crdinformers.NewSharedInformerFactory(crdClient, 0)
 			katalystInformerFactory := katalystinformers.NewSharedInformerFactory(katalystCrdClient, 0)
+			flextopoInformerFactory := flextopoinformers.NewSharedInformerFactory(flextopoCrdClient, 0)
 
 			eventBroadcaster := events.NewBroadcaster(&events.EventSinkImpl{Interface: client.EventsV1()})
 			eventRecorder := eventBroadcaster.NewRecorder(scheme.Scheme, testSchedulerName)
@@ -146,6 +148,7 @@ func TestInitSchedulerCRD(t *testing.T) {
 				informerFactory,
 				crdInformerFactory,
 				katalystInformerFactory,
+				flextopoInformerFactory,
 				stopCh,
 				eventRecorder,
 			)
@@ -175,6 +178,9 @@ func TestSchedulerStatusErrors(t *testing.T) {
 	eventBroadcaster := events.NewBroadcaster(&events.EventSinkImpl{Interface: client.EventsV1()})
 	eventRecorder := eventBroadcaster.NewRecorder(scheme.Scheme, testSchedulerName)
 
+	flextopoCrdClient := flextopoclientfake.NewSimpleClientset()
+	flextopoInformerFactory := flextopoinformers.NewSharedInformerFactory(flextopoCrdClient, 0)
+
 	stopCh := make(chan struct{})
 	defer close(stopCh)
 	testingScheduler, _ := New(
@@ -185,6 +191,7 @@ func TestSchedulerStatusErrors(t *testing.T) {
 		informerFactory,
 		crdInformerFactory,
 		katalystInformerFactory,
+		flextopoInformerFactory,
 		stopCh,
 		eventRecorder,
 	)
@@ -387,6 +394,11 @@ func TestScheduleUnitMultiScheduleSwitch(t *testing.T) {
 	katalystInformerFactory.Start(stop)
 	katalystInformerFactory.WaitForCacheSync(stop)
 
+	flextopoCrdClient := flextopoclientfake.NewSimpleClientset()
+	flextopoInformerFactory := flextopoinformers.NewSharedInformerFactory(flextopoCrdClient, 0)
+	flextopoInformerFactory.Start(stop)
+	flextopoInformerFactory.WaitForCacheSync(stop)
+
 	s, _ := New(
 		testSchedulerSysName,
 		&testSchedulerSysName,
@@ -395,6 +407,7 @@ func TestScheduleUnitMultiScheduleSwitch(t *testing.T) {
 		informerFactory,
 		crdInformerFactory,
 		katalystInformerFactory,
+		flextopoInformerFactory,
 		stop,
 		eventRecorder,
 	)
@@ -599,6 +612,11 @@ func TestScheduleUnit_Preemption(t *testing.T) {
 	katalystInformerFactory.Start(stop)
 	katalystInformerFactory.WaitForCacheSync(stop)
 
+	flextopoCrdClient := flextopoclientfake.NewSimpleClientset()
+	flextopoInformerFactory := flextopoinformers.NewSharedInformerFactory(flextopoCrdClient, 0)
+	flextopoInformerFactory.Start(stop)
+	flextopoInformerFactory.WaitForCacheSync(stop)
+
 	s, _ := New(
 		testSchedulerSysName,
 		&testSchedulerSysName,
@@ -607,6 +625,7 @@ func TestScheduleUnit_Preemption(t *testing.T) {
 		informerFactory,
 		crdInformerFactory,
 		katalystInformerFactory,
+		flextopoInformerFactory,
 		stop,
 		eventRecorder,
 		WithDefaultProfile(
@@ -680,6 +699,9 @@ func TestScheduleByRescheduling(t *testing.T) {
 	eventBroadcaster := events.NewBroadcaster(&events.EventSinkImpl{Interface: client.EventsV1()})
 	eventRecorder := eventBroadcaster.NewRecorder(scheme.Scheme, testSchedulerName)
 
+	flextopoCrdClient := flextopoclientfake.NewSimpleClientset()
+	flextopoInformerFactory := flextopoinformers.NewSharedInformerFactory(flextopoCrdClient, 0)
+
 	stopCh := make(chan struct{})
 	defer close(stopCh)
 	sched, err := New(
@@ -690,6 +712,7 @@ func TestScheduleByRescheduling(t *testing.T) {
 		informerFactory,
 		crdInformerFactory,
 		katalystInformerFactory,
+		flextopoInformerFactory,
 		stopCh,
 		eventRecorder,
 	)
@@ -911,6 +934,11 @@ func TestScheduleUnit_RemoveVictims(t *testing.T) {
 	katalystInformerFactory.Start(stop)
 	katalystInformerFactory.WaitForCacheSync(stop)
 
+	flextopoCrdClient := flextopoclientfake.NewSimpleClientset()
+	flextopoInformerFactory := flextopoinformers.NewSharedInformerFactory(flextopoCrdClient, 0)
+	flextopoInformerFactory.Start(stop)
+	flextopoInformerFactory.WaitForCacheSync(stop)
+
 	s, _ := New(
 		testSchedulerSysName,
 		&testSchedulerSysName,
@@ -919,6 +947,7 @@ func TestScheduleUnit_RemoveVictims(t *testing.T) {
 		informerFactory,
 		crdInformerFactory,
 		katalystInformerFactory,
+		flextopoInformerFactory,
 		stop,
 		eventRecorder,
 		WithDefaultProfile(

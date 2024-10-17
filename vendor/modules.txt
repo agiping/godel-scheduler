@@ -31,8 +31,10 @@ github.com/NYTimes/gziphandler
 ## explicit; go 1.21.4
 github.com/agiping/flextopo-api/pkg/apis/flextopo/v1alpha1
 github.com/agiping/flextopo-api/pkg/client/clientset/versioned
+github.com/agiping/flextopo-api/pkg/client/clientset/versioned/fake
 github.com/agiping/flextopo-api/pkg/client/clientset/versioned/scheme
 github.com/agiping/flextopo-api/pkg/client/clientset/versioned/typed/flextopo/v1alpha1
+github.com/agiping/flextopo-api/pkg/client/clientset/versioned/typed/flextopo/v1alpha1/fake
 github.com/agiping/flextopo-api/pkg/client/informers/externalversions
 github.com/agiping/flextopo-api/pkg/client/informers/externalversions/flextopo
 github.com/agiping/flextopo-api/pkg/client/informers/externalversions/flextopo/v1alpha1
