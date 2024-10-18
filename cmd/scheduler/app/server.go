@@ -22,12 +22,10 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"reflect"
 	goruntime "runtime"
 
 	"github.com/spf13/cobra"
 
-	flextopov1alpha1 "github.com/agiping/flextopo-api/pkg/apis/flextopo/v1alpha1"
 	schedulerserverconfig "github.com/kubewharf/godel-scheduler/cmd/scheduler/app/config"
 	"github.com/kubewharf/godel-scheduler/cmd/scheduler/app/options"
 	"github.com/kubewharf/godel-scheduler/cmd/scheduler/app/util/configz"
@@ -47,6 +45,7 @@ import (
 	"k8s.io/apiserver/pkg/server/healthz"
 	"k8s.io/apiserver/pkg/server/mux"
 	"k8s.io/apiserver/pkg/server/routes"
+	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/events"
 	"k8s.io/client-go/tools/leaderelection"
 	cliflag "k8s.io/component-base/cli/flag"
@@ -224,13 +223,14 @@ func Run(ctx context.Context, cc schedulerserverconfig.CompletedConfig) error {
 	cc.InformerFactory.WaitForCacheSync(ctx.Done())
 	cc.GodelCrdInformerFactory.WaitForCacheSync(ctx.Done())
 	cc.KatalystCrdInformerFactory.WaitForCacheSync(ctx.Done())
+	cc.FlextopoCrdInformerFactory.WaitForCacheSync(ctx.Done())
 
-	cacheSynced := cc.FlextopoCrdInformerFactory.WaitForCacheSync(ctx.Done())
-	if !cacheSynced[reflect.TypeOf(flextopov1alpha1.FlexTopo{})] {
-		return fmt.Errorf("failed to sync flextopo cache")
+	success := cache.WaitForCacheSync(ctx.Done(), cc.FlextopoCrdInformerFactory.Flextopo().V1alpha1().FlexTopos().Informer().HasSynced)
+	if !success {
+		return fmt.Errorf("failed to sync flextopo cache within timeout")
 	}
 
-	klog.InfoS("================ Flextopo cache synced ====================", "synced", cacheSynced)
+	klog.InfoS("================ Flextopo cache synced ====================")
 
 	run := func(ctx context.Context) {
 		// Register the tracer when we become the leader.
