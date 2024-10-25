@@ -33,7 +33,7 @@ spec:
           args:
             - "--leader-elect=false"
             - "--tracer=noop"
-            - "--v=4"
+            - "--v=5"
             - "--disable-preemption=false"
             - "--config=/config/scheduler.config"
           resources:
