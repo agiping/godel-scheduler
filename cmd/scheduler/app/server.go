@@ -45,7 +45,6 @@ import (
 	"k8s.io/apiserver/pkg/server/healthz"
 	"k8s.io/apiserver/pkg/server/mux"
 	"k8s.io/apiserver/pkg/server/routes"
-	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/events"
 	"k8s.io/client-go/tools/leaderelection"
 	cliflag "k8s.io/component-base/cli/flag"
@@ -224,13 +223,6 @@ func Run(ctx context.Context, cc schedulerserverconfig.CompletedConfig) error {
 	cc.GodelCrdInformerFactory.WaitForCacheSync(ctx.Done())
 	cc.KatalystCrdInformerFactory.WaitForCacheSync(ctx.Done())
 	cc.FlextopoCrdInformerFactory.WaitForCacheSync(ctx.Done())
-
-	success := cache.WaitForCacheSync(ctx.Done(), cc.FlextopoCrdInformerFactory.Flextopo().V1alpha1().FlexTopos().Informer().HasSynced)
-	if !success {
-		return fmt.Errorf("failed to sync flextopo cache within timeout")
-	}
-
-	klog.InfoS("================ Flextopo cache synced ====================")
 
 	run := func(ctx context.Context) {
 		// Register the tracer when we become the leader.
