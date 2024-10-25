@@ -836,6 +836,9 @@ func (sched *Scheduler) deleteMovement(obj interface{}) {
 }
 
 func (sched *Scheduler) addFlexTopoToCache(obj interface{}) {
+	// debugging:
+	klog.Infof("===== addFlexTopoToCache: %+v", obj)
+
 	flextopo, ok := obj.(*flextopov1alpha1.FlexTopo)
 	if !ok {
 		klog.InfoS("Failed to convert to *flextopov1alpha1.FlexTopo", "object", obj)
@@ -855,6 +858,9 @@ func (sched *Scheduler) addFlexTopoToCache(obj interface{}) {
 }
 
 func (sched *Scheduler) updateFlexTopoInCache(oldObj, newObj interface{}) {
+	// debugging:
+	klog.Infof("===== updateFlexTopoInCache: %+v, %+v", oldObj, newObj)
+
 	oldFtopo, ok := oldObj.(*flextopov1alpha1.FlexTopo)
 	if !ok {
 		klog.InfoS("Failed to convert to *flextopov1alpha1.FlexTopo", "oldObject", oldObj)
@@ -879,6 +885,9 @@ func (sched *Scheduler) updateFlexTopoInCache(oldObj, newObj interface{}) {
 }
 
 func (sched *Scheduler) deleteFlexTopoFromCache(obj interface{}) {
+	// debugging:
+	klog.Infof("===== deleteFlexTopoFromCache: %+v", obj)
+
 	flextopo, ok := obj.(*flextopov1alpha1.FlexTopo)
 	if !ok {
 		klog.InfoS("Failed to convert to *flextopov1alpha1.FlexTopo", "object", obj)
