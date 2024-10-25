@@ -528,9 +528,6 @@ func (s *NodeStore) AddFlexTopo(flextopo *flextopov1alpha1.FlexTopo) error {
 		nodeInfo = framework.NewNodeInfo()
 	}
 	err := nodeInfo.SetFlexTopo(flextopo)
-
-	// debugging:
-	klog.Infof("===== AddFlexTopo: %+v", nodeInfo.GetFlexTopo())
 	s.Set(flextopo.Name, nodeInfo)
 	return err
 }
