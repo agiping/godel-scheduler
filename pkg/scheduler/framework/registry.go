@@ -25,6 +25,7 @@ import (
 	schedulerconfig "github.com/kubewharf/godel-scheduler/pkg/scheduler/apis/config"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/handle"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/plugins/coscheduling"
+	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/plugins/flextopo"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/plugins/imagelocality"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/plugins/loadaware"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/plugins/nodeaffinity"
@@ -82,7 +83,7 @@ func NewOrderedPluginRegistry() framework.PluginList {
 			nodevolumelimits.GCEPDName,
 			nodevolumelimits.EBSName,
 			nonnativeresource.NonNativeTopologyName,
-
+			flextopo.Name,
 			// always Success
 			coscheduling.Name,
 		},
@@ -105,6 +106,7 @@ func NewInTreeRegistry() Registry {
 		nodeports.Name:                          nodeports.New,
 		podlauncher.Name:                        podlauncher.New,
 		volumebinding.Name:                      volumebinding.New,
+		flextopo.Name:                           flextopo.New,
 		nonnativeresource.NonNativeTopologyName: nonnativeresource.NewNonNativeTopology,
 		// TODO: remove it, use NonNativeResourceSelector & NonNativeTopology instead  @songxinyi.echo
 
@@ -127,12 +129,14 @@ func NewInTreeRegistry() Registry {
 
 func NewInTreePreemptionRegistry() Registry {
 	return Registry{
+		// TODO(Ping Zhang): add flextopo preemption plugin
 		// preemption plugins
 		podlauncherchecker.PodLauncherCheckerName:                       podlauncherchecker.NewPodLauncherChecker,
 		preemptibilitychecker.PreemptibilityCheckerName:                 preemptibilitychecker.NewPreemptibilityChecker,
 		pdbchecker.PDBCheckerName:                                       pdbchecker.NewPDBChecker,
 		priorityvaluechecker.PriorityValueCheckerName:                   priorityvaluechecker.NewPriorityValueChecker,
 		newlystartedprotectionchecker.NewlyStartedProtectionCheckerName: newlystartedprotectionchecker.NewNewlyStartedProtectionChecker,
+		// TODO(Ping Zhang): add flextopo preemption plugin
 		// sorting plugins
 		priority.MinHighestPriorityName:       priority.NewMinHighestPriority,
 		priority.MinPrioritySumName:           priority.NewMinPrioritySum,
