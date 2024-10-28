@@ -8,6 +8,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	utilfeature "k8s.io/apiserver/pkg/util/feature"
 	listerv1 "k8s.io/client-go/listers/core/v1"
+	"k8s.io/klog/v2"
 
 	godelfeatures "github.com/kubewharf/godel-scheduler/pkg/features"
 	framework "github.com/kubewharf/godel-scheduler/pkg/framework/api"
@@ -28,6 +29,7 @@ var (
 )
 
 func New(_ runtime.Object, handle handle.PodFrameworkHandle) (framework.Plugin, error) {
+	klog.V(4).InfoS("====== Creating flextopo plugin ======")
 	informerFactory := handle.SharedInformerFactory()
 	podLister := informerFactory.Core().V1().Pods().Lister()
 	return &FlexibleTopology{
@@ -46,7 +48,7 @@ func (flextopo *FlexibleTopology) PreFilter(_ context.Context, cycleState *frame
 	// Get all resources requests
 	resourcesRequests := podutil.GetPodRequests(pod)
 	// TODO(Ping Zhang): do necessary pre-filtering here
-	fmt.Println(resourcesRequests)
+	klog.V(4).InfoS("====== Running pre-filter function of flextopo plugin ======", "resourcesRequests", resourcesRequests)
 	return nil
 }
 
@@ -56,7 +58,7 @@ func (flextopo *FlexibleTopology) PreFilterExtensions() framework.PreFilterExten
 
 func (flextopo *FlexibleTopology) Filter(ctx context.Context, cycleState *framework.CycleState, pod *v1.Pod, nodeInfo framework.NodeInfo) *framework.Status {
 	// testing purpose
-	fmt.Println("====== Running filter function of flextopo plugin ======")
+	klog.V(4).InfoS("====== Running filter function of flextopo plugin ======")
 	if !utilfeature.DefaultFeatureGate.Enabled(godelfeatures.FlexibleTopologySupport) {
 		return framework.NewStatus(framework.Error, fmt.Sprintf("featuregate %s is disabled", godelfeatures.FlexibleTopologySupport))
 	}
@@ -72,13 +74,13 @@ func (flextopo *FlexibleTopology) Filter(ctx context.Context, cycleState *framew
 // TODO(Ping Zhang): implement score function
 func (flextopo *FlexibleTopology) Score(ctx context.Context, state *framework.CycleState, pod *v1.Pod, nodeName string) (int64, *framework.Status) {
 	// testing purpose
-	fmt.Println("====== Running score function of flextopo plugin ======")
+	klog.V(4).InfoS("====== Running score function of flextopo plugin ======")
 	return 0, nil
 }
 
 // TODO(Ping Zhang): implement score extensions
 func (flextopo *FlexibleTopology) ScoreExtensions() framework.ScoreExtensions {
 	// testing purpose
-	fmt.Println("====== Running score extensions of flextopo plugin ======")
+	klog.V(4).InfoS("====== Running score extensions of flextopo plugin ======")
 	return nil
 }
