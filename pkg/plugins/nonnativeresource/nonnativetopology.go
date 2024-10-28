@@ -632,5 +632,8 @@ func FeasibleFlexibleTopology(pod *v1.Pod,
 	// TODO: implement later
 	// testing purpose
 	klog.V(4).InfoS("====== Running feasible flexible-topology function ======")
+	klog.V(4).InfoS("====== resourcesRequests: ======", resourcesRequests)
+	nodeFlextopo := nodeInfo.GetFlexTopo()
+	klog.V(4).InfoS("====== nodeFlextopo: ======", nodeFlextopo)
 	return nil
 }
