@@ -630,5 +630,7 @@ func FeasibleFlexibleTopology(pod *v1.Pod,
 	podLister listerv1.PodLister,
 ) *framework.Status {
 	// TODO: implement later
+	// testing purpose
+	fmt.Println("====== Running feasible flexible-topology function ======")
 	return nil
 }

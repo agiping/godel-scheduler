@@ -55,6 +55,8 @@ func (flextopo *FlexibleTopology) PreFilterExtensions() framework.PreFilterExten
 }
 
 func (flextopo *FlexibleTopology) Filter(ctx context.Context, cycleState *framework.CycleState, pod *v1.Pod, nodeInfo framework.NodeInfo) *framework.Status {
+	// testing purpose
+	fmt.Println("====== Running filter function of flextopo plugin ======")
 	if !utilfeature.DefaultFeatureGate.Enabled(godelfeatures.FlexibleTopologySupport) {
 		return framework.NewStatus(framework.Error, fmt.Sprintf("featuregate %s is disabled", godelfeatures.FlexibleTopologySupport))
 	}
@@ -69,10 +71,14 @@ func (flextopo *FlexibleTopology) Filter(ctx context.Context, cycleState *framew
 
 // TODO(Ping Zhang): implement score function
 func (flextopo *FlexibleTopology) Score(ctx context.Context, state *framework.CycleState, pod *v1.Pod, nodeName string) (int64, *framework.Status) {
+	// testing purpose
+	fmt.Println("====== Running score function of flextopo plugin ======")
 	return 0, nil
 }
 
 // TODO(Ping Zhang): implement score extensions
 func (flextopo *FlexibleTopology) ScoreExtensions() framework.ScoreExtensions {
+	// testing purpose
+	fmt.Println("====== Running score extensions of flextopo plugin ======")
 	return nil
 }
