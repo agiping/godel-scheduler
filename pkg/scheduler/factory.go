@@ -30,6 +30,7 @@ import (
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/apis/config"
 	godelcache "github.com/kubewharf/godel-scheduler/pkg/scheduler/cache"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/plugins/coscheduling"
+	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/plugins/flextopo"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/plugins/nodeaffinity"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/plugins/nodeports"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/plugins/noderesources"
@@ -59,6 +60,7 @@ func basePluginsForKubelet() *framework.PluginCollection {
 			framework.NewPluginSpec(volumebinding.Name),
 			framework.NewPluginSpec(nodeaffinity.Name),
 			framework.NewPluginSpec(tainttoleration.Name),
+			framework.NewPluginSpec(flextopo.Name), // TODO(Ping Zhang): clarify the usage and order of flextopo plugin during scheduling and preemption
 		},
 		Searchings: []*framework.VictimSearchingPluginCollectionSpec{
 			framework.NewVictimSearchingPluginCollectionSpec(
