@@ -31,6 +31,7 @@ import (
 	"github.com/kubewharf/godel-scheduler/pkg/binder/apis"
 	godelcache "github.com/kubewharf/godel-scheduler/pkg/binder/cache"
 	"github.com/kubewharf/godel-scheduler/pkg/binder/framework/plugins/defaultbinder"
+	"github.com/kubewharf/godel-scheduler/pkg/binder/framework/plugins/flextopo"
 	"github.com/kubewharf/godel-scheduler/pkg/binder/framework/plugins/nodeports"
 	"github.com/kubewharf/godel-scheduler/pkg/binder/framework/plugins/noderesources"
 	"github.com/kubewharf/godel-scheduler/pkg/binder/framework/plugins/nodevolumelimits"
@@ -82,6 +83,10 @@ func NewBasePlugins(victimsCheckingPlugins []*framework.VictimCheckingPluginColl
 	}
 	if utilfeature.DefaultFeatureGate.Enabled(features.NonNativeResourceSchedulingSupport) {
 		basicPlugins.CheckConflicts = append(basicPlugins.CheckConflicts, nonnativeresource.Name)
+	}
+	// TODO(Ping Zhang): carefully check and move the flextopo plugin into CheckTopology
+	if utilfeature.DefaultFeatureGate.Enabled(features.FlexibleTopologySupport) {
+		basicPlugins.CheckConflicts = append(basicPlugins.CheckConflicts, flextopo.Name)
 	}
 
 	return &basicPlugins

@@ -39,11 +39,13 @@ import (
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/plugins/podlauncher"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/plugins/tainttoleration"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/plugins/volumebinding"
+	flextopochecker "github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/preemption-plugins/searching/flextopochecker"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/preemption-plugins/searching/newlystartedprotectionchecker"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/preemption-plugins/searching/pdbchecker"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/preemption-plugins/searching/podlauncherchecker"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/preemption-plugins/searching/preemptibilitychecker"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/preemption-plugins/searching/priorityvaluechecker"
+	optimalflextopo "github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/preemption-plugins/sorting/flextopo"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/preemption-plugins/sorting/priority"
 	starttime "github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/preemption-plugins/sorting/start_time"
 	victimscount "github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/preemption-plugins/sorting/victims_count"
@@ -129,19 +131,19 @@ func NewInTreeRegistry() Registry {
 
 func NewInTreePreemptionRegistry() Registry {
 	return Registry{
-		// TODO(Ping Zhang): add flextopo preemption plugin
 		// preemption plugins
 		podlauncherchecker.PodLauncherCheckerName:                       podlauncherchecker.NewPodLauncherChecker,
 		preemptibilitychecker.PreemptibilityCheckerName:                 preemptibilitychecker.NewPreemptibilityChecker,
 		pdbchecker.PDBCheckerName:                                       pdbchecker.NewPDBChecker,
 		priorityvaluechecker.PriorityValueCheckerName:                   priorityvaluechecker.NewPriorityValueChecker,
 		newlystartedprotectionchecker.NewlyStartedProtectionCheckerName: newlystartedprotectionchecker.NewNewlyStartedProtectionChecker,
-		// TODO(Ping Zhang): add flextopo preemption plugin
+		flextopochecker.FlexTopoCheckerName:                             flextopochecker.NewFlexTopoChecker,
 		// sorting plugins
 		priority.MinHighestPriorityName:       priority.NewMinHighestPriority,
 		priority.MinPrioritySumName:           priority.NewMinPrioritySum,
 		starttime.LatestEarliestStartTimeName: starttime.NewLatestEarliestStartTime,
 		victimscount.LeastVictimsName:         victimscount.NewLeastVictims,
+		optimalflextopo.OptimalFlextopoName:   optimalflextopo.NewOptimalFlextopo,
 	}
 }
 

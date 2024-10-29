@@ -71,16 +71,22 @@ func (flextopo *FlexibleTopology) Filter(ctx context.Context, cycleState *framew
 	return nonnativeresource.FeasibleFlexibleTopology(pod, resourceType, resourcesRequests, nodeInfo, flextopo.podLister)
 }
 
+func (flextopo *FlexibleTopology) PreScore(ctx context.Context, state *framework.CycleState, pod *v1.Pod, nodes []framework.NodeInfo) *framework.Status {
+	// placeholder
+	klog.V(4).InfoS("====== Running pre-score function of flextopo plugin ======")
+	return nil
+}
+
 // TODO(Ping Zhang): implement score function
 func (flextopo *FlexibleTopology) Score(ctx context.Context, state *framework.CycleState, pod *v1.Pod, nodeName string) (int64, *framework.Status) {
-	// testing purpose
+	// placeholder
 	klog.V(4).InfoS("====== Running score function of flextopo plugin ======")
 	return 0, nil
 }
 
 // TODO(Ping Zhang): implement score extensions
 func (flextopo *FlexibleTopology) ScoreExtensions() framework.ScoreExtensions {
-	// testing purpose
+	// placeholder
 	klog.V(4).InfoS("====== Running score extensions of flextopo plugin ======")
 	return nil
 }

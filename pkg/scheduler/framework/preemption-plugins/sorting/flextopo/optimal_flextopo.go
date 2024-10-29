@@ -25,13 +25,18 @@ import (
 
 const OptimalFlextopoName = "OptimalFlextopo"
 
-type OptimalFlextopo struct{}
+type OptimalFlextopo struct {
+	BestEffortTopologyAlignment bool
+}
 
 // type check
 var _ framework.CandidatesSortingPlugin = &OptimalFlextopo{}
 
 func NewOptimalFlextopo(_ runtime.Object, _ handle.PodFrameworkHandle) (framework.Plugin, error) {
-	return &OptimalFlextopo{}, nil
+	// TODO: get args from config
+	return &OptimalFlextopo{
+		BestEffortTopologyAlignment: true,
+	}, nil
 }
 
 func (o *OptimalFlextopo) Name() string {

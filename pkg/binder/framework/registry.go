@@ -25,6 +25,7 @@ import (
 	"github.com/kubewharf/godel-scheduler/pkg/binder/framework/handle"
 	"github.com/kubewharf/godel-scheduler/pkg/binder/framework/plugins/defaultbinder"
 	"github.com/kubewharf/godel-scheduler/pkg/binder/framework/plugins/defaultpreemption"
+	"github.com/kubewharf/godel-scheduler/pkg/binder/framework/plugins/flextopo"
 	"github.com/kubewharf/godel-scheduler/pkg/binder/framework/plugins/nodeports"
 	"github.com/kubewharf/godel-scheduler/pkg/binder/framework/plugins/noderesources"
 	"github.com/kubewharf/godel-scheduler/pkg/binder/framework/plugins/nodevolumelimits"
@@ -57,6 +58,7 @@ func NewInTreeRegistry() Registry {
 		volumebinding.Name:              volumebinding.New,
 		nodeports.Name:                  nodeports.New,
 		nonnativeresource.Name:          nonnativeresource.New,
+		flextopo.Name:                   flextopo.New,
 	}
 }
 
