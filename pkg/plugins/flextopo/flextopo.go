@@ -39,6 +39,14 @@ func NewFlexGraph() *FlexGraph {
 	}
 }
 
+func (fg *FlexGraph) String() string {
+	var nodeIDs []string
+	for id := range fg.Nodes {
+		nodeIDs = append(nodeIDs, id)
+	}
+	return fmt.Sprintf("FlexGraph with nodes: %v", nodeIDs)
+}
+
 // BuildFlexGraph builds a FlexGraph from a FlexTopo CRD
 func BuildFlexGraph(flexTopo *flextopov1alpha1.FlexTopo) *FlexGraph {
 	graph := NewFlexGraph()
@@ -113,7 +121,8 @@ func checkFlexTopoAlignment(
 ) (bool, error) {
 	// testing
 	klog.V(4).InfoS(" ==== checking FlexTopo alignment", "resourcesRequests", resourcesRequests)
-	klog.V(4).InfoS(" ==== checking FlexTopo alignment", "flexGraph", flexGraph)
+	klog.V(4).InfoS(" ==== checking FlexTopo alignment", "node count of flexGraph", len(flexGraph.Nodes))
+	klog.V(4).InfoS(" ==== checking FlexTopo alignment", "flexGraph", flexGraph.String())
 	return true, nil
 }
 
