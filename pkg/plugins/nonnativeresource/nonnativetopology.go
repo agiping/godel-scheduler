@@ -621,19 +621,3 @@ func getNonExclusiveAllocation(resourcesRequests map[string]*resource.Quantity, 
 	}
 	return allocation
 }
-
-// -------------nonnative resource: flexible topology-------------
-func FeasibleFlexibleTopology(pod *v1.Pod,
-	resourceType podutil.PodResourceType,
-	resourcesRequests map[string]*resource.Quantity,
-	nodeInfo framework.NodeInfo,
-	podLister listerv1.PodLister,
-) *framework.Status {
-	// TODO: implement later
-	// testing purpose
-	klog.V(4).InfoS("====== Running feasible flexible-topology function ======")
-	klog.V(4).InfoS("====== resourcesRequests: ======", resourcesRequests)
-	nodeFlextopo := nodeInfo.GetFlexTopo()
-	klog.V(4).InfoS("====== nodeFlextopo: ======", nodeFlextopo)
-	return nil
-}

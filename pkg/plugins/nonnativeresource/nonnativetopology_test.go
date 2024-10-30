@@ -3051,7 +3051,3 @@ func TestGetNumasLists(t *testing.T) {
 		t.Errorf("expected: %v, but got: %v", expectedNumaLists, gotNumaLists)
 	}
 }
-
-func TestFeasibleFlexibleTopology(t *testing.T) {
-	// TODO: implement later
-}

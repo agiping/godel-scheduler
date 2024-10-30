@@ -12,7 +12,7 @@ import (
 
 	godelfeatures "github.com/kubewharf/godel-scheduler/pkg/features"
 	framework "github.com/kubewharf/godel-scheduler/pkg/framework/api"
-	"github.com/kubewharf/godel-scheduler/pkg/plugins/nonnativeresource"
+	flextopocrd "github.com/kubewharf/godel-scheduler/pkg/plugins/flextopo"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/handle"
 	podutil "github.com/kubewharf/godel-scheduler/pkg/util/pod"
 )
@@ -68,7 +68,7 @@ func (flextopo *FlexibleTopology) Filter(ctx context.Context, cycleState *framew
 		return framework.NewStatus(framework.Error, "failed to get resource type from state")
 	}
 	resourcesRequests := podutil.GetPodRequests(pod)
-	return nonnativeresource.FeasibleFlexibleTopology(pod, resourceType, resourcesRequests, nodeInfo, flextopo.podLister)
+	return flextopocrd.FeasibleFlexibleTopology(pod, resourceType, resourcesRequests, nodeInfo, flextopo.podLister)
 }
 
 func (flextopo *FlexibleTopology) PreScore(ctx context.Context, state *framework.CycleState, pod *v1.Pod, nodes []framework.NodeInfo) *framework.Status {

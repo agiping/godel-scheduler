@@ -96,6 +96,10 @@ const (
 
 	// Pods with same request template share the same requirements.
 	PodRequestTemplateAnnotationKey = "godel.bytedance.com/request-template"
+
+	// FlextopoRequirementsAnnotationKey is a pod annotation key, value is the flextopo requirements
+	// value: "guaranteed", "best-effort", "none"
+	FlextopoRequirementAnnotationKey = "godel.bytedance.com/flextopo-requirement"
 )
 
 type PodState string
