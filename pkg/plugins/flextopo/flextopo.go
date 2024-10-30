@@ -21,6 +21,7 @@ const (
 	NodeTypeCPUCore     string = "CPUCore"
 	NodeTypeCoreGroup   string = "CoreGroup"
 	NodeTypeGPU         string = "GPU"
+	EdgeTypeContains    string = "contains"
 
 	AlignmentLevelNUMA   string = "NUMA"
 	AlignmentLevelSocket string = "Socket"
@@ -72,7 +73,7 @@ func BuildFlexGraph(flexTopo *flextopov1alpha1.FlexTopo) *FlexGraph {
 		sourceFlexNode := graph.Nodes[edge.Source]
 		targetFlexNode := graph.Nodes[edge.Target]
 		if sourceFlexNode != nil && targetFlexNode != nil {
-			if edge.Type == "contains" {
+			if edge.Type == EdgeTypeContains {
 				sourceFlexNode.Children = append(sourceFlexNode.Children, targetFlexNode)
 				targetFlexNode.Parents = append(targetFlexNode.Parents, sourceFlexNode)
 			}
@@ -120,8 +121,8 @@ func (fg *FlexGraph) ComputeFreeCPUCoresByNUMAsAndSockets() {
 	}
 
 	// for validation
-	klog.V(4).InfoS("Free CPU cores by NUMAs", "numa_cores", fg.FreeCPUCoresByNUMAs)
-	klog.V(4).InfoS("Free CPU cores by sockets", "socket_cores", fg.FreeCPUCoresBySockets)
+	klog.V(4).InfoS("Free CPU cores by NUMAs", "numa_free_cores", fg.FreeCPUCoresByNUMAs)
+	klog.V(4).InfoS("Free CPU cores by sockets", "socket_free_cores", fg.FreeCPUCoresBySockets)
 }
 
 // GetFlexNodesByType extracts the list of node IDs of the type NUMA and Socket from the FlexGraph.
