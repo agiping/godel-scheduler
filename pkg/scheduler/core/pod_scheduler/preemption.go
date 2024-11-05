@@ -741,6 +741,8 @@ func (gs *podScheduler) selectVictimsOnNode(
 		metrics.PreemptingFilterVictims, helper.SinceInSeconds(filterVictimsPodsStart))
 	// No potential victims are found, and so we don't need to evaluate the node again since its state didn't change.
 	if len(potentialVictims) == 0 {
+		// testing purpose
+		klog.Infof("======= No potential victims found by preemption.FilterVictimsPods() ==========")
 		return nil, false
 	}
 
@@ -757,6 +759,8 @@ func (gs *podScheduler) selectVictimsOnNode(
 
 	for _, victim := range potentialVictims {
 		if err := removePod(ctx, stateCopy, pod, victim, nodeInfoCopy, fw); err != nil {
+			// testing purpose
+			klog.Infof("======= Failed to remove pod %s from node %s ==========", victim.Name, nodeName)
 			return nil, false
 		}
 	}
@@ -770,6 +774,8 @@ func (gs *podScheduler) selectVictimsOnNode(
 		if err != nil {
 			klog.InfoS("Failed to select victims on node", "node", nodeName, "err", err)
 		}
+		// testing purpose
+		klog.Infof("======= Error is nil, but failed to select victims on node %s ==========", nodeName)
 		return nil, false
 	}
 
