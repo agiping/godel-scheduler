@@ -16,9 +16,17 @@ limitations under the License.
 
 package api
 
+import (
+	flextopov1alpha1 "github.com/agiping/flextopo-api/pkg/apis/flextopo/v1alpha1"
+)
+
 type Candidate struct {
 	Victims *Victims
 	Name    string
+	// TODO(Ping Zhang): We do not find a better way to get the FlexTopo info
+	// from the Candidate here, thus, we just add it here.
+	// revisit if there is a better way to do this.
+	FlexTopo *flextopov1alpha1.FlexTopo
 }
 
 type CachedNominatedNodes struct {

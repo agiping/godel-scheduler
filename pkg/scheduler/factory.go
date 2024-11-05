@@ -38,11 +38,13 @@ import (
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/plugins/podlauncher"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/plugins/tainttoleration"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/plugins/volumebinding"
+	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/preemption-plugins/searching/flextopochecker"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/preemption-plugins/searching/newlystartedprotectionchecker"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/preemption-plugins/searching/pdbchecker"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/preemption-plugins/searching/podlauncherchecker"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/preemption-plugins/searching/preemptibilitychecker"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/preemption-plugins/searching/priorityvaluechecker"
+	optimalflextopo "github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/preemption-plugins/sorting/flextopo"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/preemption-plugins/sorting/priority"
 	starttime "github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/preemption-plugins/sorting/start_time"
 	victimscount "github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/preemption-plugins/sorting/victims_count"
@@ -60,7 +62,7 @@ func basePluginsForKubelet() *framework.PluginCollection {
 			framework.NewPluginSpec(volumebinding.Name),
 			framework.NewPluginSpec(nodeaffinity.Name),
 			framework.NewPluginSpec(tainttoleration.Name),
-			framework.NewPluginSpec(flextopo.Name), // TODO(Ping Zhang): clarify the usage and order of flextopo plugin during scheduling and preemption
+			framework.NewPluginSpec(flextopo.Name), // TODO(Ping Zhang): revisit the usage and order of flextopo plugin during scheduling and preemption
 		},
 		Searchings: []*framework.VictimSearchingPluginCollectionSpec{
 			framework.NewVictimSearchingPluginCollectionSpec(
@@ -103,8 +105,19 @@ func basePluginsForKubelet() *framework.PluginCollection {
 				false,
 				false,
 			),
+			framework.NewVictimSearchingPluginCollectionSpec(
+				[]config.Plugin{
+					{Name: flextopochecker.FlexTopoCheckerName},
+				},
+				false,
+				false,
+				false,
+			),
 		},
 		Sortings: []*framework.PluginSpec{
+			// ATTENTION: In Godel, the order of sorting plugins matters.
+			// Thus, for validating the flextopo plugin during preemption, we should place it before other sorting plugins.
+			framework.NewPluginSpec(optimalflextopo.OptimalFlextopoName),
 			framework.NewPluginSpec(priority.MinHighestPriorityName),
 			framework.NewPluginSpec(priority.MinPrioritySumName),
 			framework.NewPluginSpec(victimscount.LeastVictimsName),

@@ -181,6 +181,10 @@ func FeasibleFlexibleTopology(
 
 	if flextopoRequirements == GuaranteedAlignment {
 		nodeFlexTopo := nodeInfo.GetFlexTopo()
+		// TODO(Ping Zhang):
+		// 1. check if victims are already removed from the nodeInfo during preemption.
+		// 2. check if we need to remove victims from the nodeFlexTopo for preemption.
+		// 3. we have already validated that current code is able to handle the normal scheduling cycle.
 		flexGraph := BuildFlexGraph(nodeFlexTopo)
 
 		// check for FlexTopo alignment

@@ -306,6 +306,7 @@ func (gs *podScheduler) preemptOnNode(
 		return &framework.Candidate{
 			Victims: &victims,
 			Name:    nodeName,
+			FlexTopo: nodeInfo.GetFlexTopo(),
 		}
 	}
 	return nil
@@ -478,6 +479,7 @@ func (gs *podScheduler) randomPreemption(
 			c := &framework.Candidate{
 				Victims: &victims,
 				Name:    nodeInfo.GetNodeName(),
+				FlexTopo: nodeInfo.GetFlexTopo(),
 			}
 
 			podsCanNotBePreempted, _ := framework.GetPodsCanNotBePreempted(preemptionState)
@@ -537,6 +539,7 @@ func (gs *podScheduler) bestPreemption(
 			c := &framework.Candidate{
 				Victims: &victims,
 				Name:    nodeInfo.GetNodeName(),
+				FlexTopo: nodeInfo.GetFlexTopo(),
 			}
 
 			lock.Lock()
@@ -663,8 +666,9 @@ func (gs *podScheduler) betterPreemption(
 				PreemptionState: preemptionState,
 			}
 			c := &framework.Candidate{
-				Victims: &victims,
-				Name:    nodesList[index].GetNodeName(),
+				Victims:  &victims,
+				Name:     nodesList[index].GetNodeName(),
+				FlexTopo: nodesList[index].GetFlexTopo(),
 			}
 			candidates = append(candidates, c)
 		} else {
