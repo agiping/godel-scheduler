@@ -757,6 +757,19 @@ func (gs *podScheduler) selectVictimsOnNode(
 	// Clone CycleState for PodAffinity plugin.
 	stateCopy := state.Clone()
 
+	// testing purpose
+	podNames := []string{}
+	for _, victim := range potentialVictims {
+		podNames = append(podNames, victim.Name)
+	}
+	klog.Infof("======= Potential victims are: %v", podNames)
+
+	// Update FlexTopo of the nodeInfoCopy
+	// before removing potentialVictims and checking that the preemptor can be scheduled
+	// This is for FlexTopo Filter plugin
+	// TODO(Ping Zhang): Clean code for this part
+	removePodFromFlexTopo(nodeInfoCopy, potentialVictims)
+
 	for _, victim := range potentialVictims {
 		if err := removePod(ctx, stateCopy, pod, victim, nodeInfoCopy, fw); err != nil {
 			// testing purpose
@@ -803,11 +816,11 @@ func (gs *podScheduler) selectVictimsOnNode(
 		}
 	}
 	// testing purpose
-	podNames := []string{}
+	podNames = []string{}
 	for _, pod := range victims {
 		podNames = append(podNames, pod.Name)
 	}
-	klog.Infof("======= Victims: %v", podNames)
+	klog.Infof("======= Final victims are: %v", podNames)
 	return victims, true
 }
 
@@ -818,6 +831,12 @@ func moreImportantPod(pi1, pi2 *v1.Pod, podsCanNotBePreempted sets.String) bool 
 		return true
 	}
 	return false
+}
+
+func removePodFromFlexTopo(nodeInfo framework.NodeInfo, victims []*v1.Pod) {
+	for _, victim := range victims {
+		nodeInfo.RemovePodFromFlexTopo(victim)
+	}
 }
 
 func removePod(ctx context.Context, stateToUse *framework.CycleState,
