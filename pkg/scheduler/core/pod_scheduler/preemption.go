@@ -304,8 +304,8 @@ func (gs *podScheduler) preemptOnNode(
 			PreemptionState: preemptionState,
 		}
 		return &framework.Candidate{
-			Victims: &victims,
-			Name:    nodeName,
+			Victims:  &victims,
+			Name:     nodeName,
 			FlexTopo: nodeInfo.GetFlexTopo(),
 		}
 	}
@@ -477,8 +477,8 @@ func (gs *podScheduler) randomPreemption(
 				PreemptionState: preemptionState,
 			}
 			c := &framework.Candidate{
-				Victims: &victims,
-				Name:    nodeInfo.GetNodeName(),
+				Victims:  &victims,
+				Name:     nodeInfo.GetNodeName(),
 				FlexTopo: nodeInfo.GetFlexTopo(),
 			}
 
@@ -537,8 +537,8 @@ func (gs *podScheduler) bestPreemption(
 				PreemptionState: preemptionState,
 			}
 			c := &framework.Candidate{
-				Victims: &victims,
-				Name:    nodeInfo.GetNodeName(),
+				Victims:  &victims,
+				Name:     nodeInfo.GetNodeName(),
 				FlexTopo: nodeInfo.GetFlexTopo(),
 			}
 
@@ -796,6 +796,12 @@ func (gs *podScheduler) selectVictimsOnNode(
 			return nil, false
 		}
 	}
+	// testing purpose
+	podNames := []string{}
+	for _, pod := range victims {
+		podNames = append(podNames, pod.Name)
+	}
+	klog.Infof("======= Victims: %v", podNames)
 	return victims, true
 }
 
