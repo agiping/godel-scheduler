@@ -108,7 +108,11 @@ func getAlignmentScore(c *framework.Candidate) int {
 	for _, pod := range c.Victims.Pods {
 		podNames = append(podNames, pod.Name)
 	}
+	// testing purpose
+	klog.Infof("======= OptimalFlextopo Plugin: getAlignmentScore, flexTopo of candidate %s: %v", c.Name, c.FlexTopo)
 	podTopologyInfo := ftopoutil.GetPodNUMAAndSockets(c.FlexTopo, podNames)
+	// testing purpose
+	klog.Infof("======= OptimalFlextopo Plugin: podTopologyInfo of candidate %s: %v", c.Name, podTopologyInfo)
 	tScore := MaxTopologyScore
 	totalNumaSet := sets.NewString()
 	totalSocketSet := sets.NewString()
