@@ -620,7 +620,6 @@ func (gs *podScheduler) bestPreemptionWithFlexTopo(
 
 		preemptionState := framework.NewCycleState()
 		// We will not clone the NodeInfo here immediately, but only when needed within `selectVictimsOnNode`.
-		nodeInfoForFlexTopo := nodeInfo.Clone()
 		podGroups, fits := gs.selectVictimsOnNodeWithFlexTopo(ctx, state, preemptionState, fw, pfw, pod, nodeInfo)
 		if fits {
 			for _, pods := range podGroups {
@@ -631,7 +630,7 @@ func (gs *podScheduler) bestPreemptionWithFlexTopo(
 				c := &framework.Candidate{
 					Victims:  &victims,
 					Name:     nodeInfo.GetNodeName(),
-					FlexTopo: nodeInfoForFlexTopo.GetFlexTopo(),
+					FlexTopo: nodeInfo.GetFlexTopo(),
 				}
 
 				lock.Lock()

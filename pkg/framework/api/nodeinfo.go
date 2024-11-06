@@ -528,7 +528,7 @@ func (n *NodeInfoImpl) Clone() NodeInfo {
 		Node:                       n.Node,
 		NMNode:                     n.NMNode,
 		CNR:                        n.CNR,
-		FlexTopo:                   n.FlexTopo,
+		FlexTopo:                   n.FlexTopo.DeepCopy(), // we need to deep copy FlexTopo, otherwise the original FlexTopo will be changed during preemption
 		NodeInSchedulerPartition:   n.NodeInSchedulerPartition,
 		NMNodeInSchedulerPartition: n.NMNodeInSchedulerPartition,
 		PodInfoMaintainer:          n.PodInfoMaintainer.Clone(),
