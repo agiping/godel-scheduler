@@ -190,12 +190,8 @@ func FeasibleFlexibleTopology(
 		// check for FlexTopo alignment
 		canBeAligned, level := checkFlexTopoAlignment(resourcesRequests, flexGraph)
 		if canBeAligned {
-			// testing purpose
-			klog.Infof("======= FlexTopo alignment can be satisfied for pod %s on node %s, at %s level ==========", pod.Name, nodeInfo.GetNodeName(), level)
 			return framework.NewStatus(framework.Success, fmt.Sprintf("FlexTopo alignment can be satisfied for pod %s on node %s, at %s level", pod.Name, nodeInfo.GetNodeName(), level))
 		} else {
-			// testing purpose
-			klog.Infof("======= FlexTopo alignment cannot be satisfied for pod %s on node %s ==========", pod.Name, nodeInfo.GetNodeName())
 			return framework.NewStatus(framework.Unschedulable, fmt.Sprintf("FlexTopo alignment cannot be satisfied for pod %s on node %s", pod.Name, nodeInfo.GetNodeName()))
 		}
 	}
