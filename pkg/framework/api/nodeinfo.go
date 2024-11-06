@@ -658,8 +658,6 @@ func (n *NodeInfoImpl) RemovePodFromFlexTopo(pod *v1.Pod) {
 	n.mu.Lock()
 	defer n.mu.Unlock()
 	podName := pod.Name
-	// testing purpose
-	klog.Infof("======= Removing pod %s from copyed FlexTopo ==========", podName)
 	for _, flexNode := range n.FlexTopo.Spec.Nodes {
 		if flexNode.Type == "CPUCore" && flexNode.Attributes["status"] == "used" && flexNode.Attributes["usedBy"] == podName {
 			flexNode.Attributes["status"] = "free"

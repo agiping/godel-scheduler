@@ -381,8 +381,6 @@ func (gs *podScheduler) runPreemption(ctx context.Context,
 	if !utilfeature.DefaultFeatureGate.Enabled(godelfeatures.FlexibleTopologySupport) || flextopoRequirements == "" {
 		candidates, err = gs.FindCandidates(ctx, f, pf, state, commonPreemptionState, pod, nodeSet, cachedNominatedNodes)
 	} else {
-		// testing purpose
-		klog.Infof("======= Finding candidates with FlexTopo ==========")
 		candidates, err = gs.FindCandidatesWithFlexTopo(ctx, f, pf, state, commonPreemptionState, pod, nodeSet, cachedNominatedNodes)
 	}
 
@@ -949,20 +947,10 @@ func (gs *podScheduler) selectVictimsOnNodeWithFlexTopo(
 	// Clone CycleState for PodAffinity plugin.
 	stateCopy := state.Clone()
 
-	// testing purpose
-	podNames := []string{}
-	for _, victim := range potentialVictims {
-		podNames = append(podNames, victim.Name)
-	}
-	klog.Infof("======= Potential victims are: %v", podNames)
-
 	// Update FlexTopo of the nodeInfoCopy
 	// before removing potentialVictims and checking that the preemptor can be scheduled
 	// This is for FlexTopo Filter plugin
 	removePodFromFlexTopo(nodeInfoCopy, potentialVictims)
-
-	// testing purpose
-	klog.Infof("======= After removing potentialVictims, check the nodeInfoCopy: %v", nodeInfoCopy)
 
 	for _, victim := range potentialVictims {
 		if err := removePod(ctx, stateCopy, pod, victim, nodeInfoCopy, fw); err != nil {
@@ -975,13 +963,8 @@ func (gs *podScheduler) selectVictimsOnNodeWithFlexTopo(
 		if err != nil {
 			klog.InfoS("Failed to select victims on node", "node", nodeName, "err", err)
 		}
-		// testing purpose
-		klog.Infof("======= Error is nil, but failed to select victims on node %s ==========", nodeName)
 		return nil, false
 	}
-
-	// testing purpose
-	klog.Infof("======= After removing potentialVictims, check the original nodeInfo: %v", nodeInfo)
 
 	// In the bellow, we try to find a set of minimum combinations of victims
 	// that can be preempted from the node.
@@ -1033,7 +1016,7 @@ func (gs *podScheduler) selectVictimsOnNodeWithFlexTopo(
 		return nil, false
 	}
 
-	// testing purpose
+	// keep by far
 	podCombNames := [][]string{}
 	for _, combination := range victimCombinations {
 		subCombNames := []string{}
@@ -1042,7 +1025,7 @@ func (gs *podScheduler) selectVictimsOnNodeWithFlexTopo(
 		}
 		podCombNames = append(podCombNames, subCombNames)
 	}
-	klog.Infof("======= Final victim combinations are: %v", podCombNames)
+	klog.Infof("Final victim combinations selected on node %s are: %v", nodeName, podCombNames)
 
 	return victimCombinations, true
 }
@@ -1323,15 +1306,11 @@ func (gs *podScheduler) SelectCandidate(
 	usedCachedNominatedNodes bool,
 ) *framework.Candidate {
 	if !usedCachedNominatedNodes {
-		// testing purpose
-		klog.Infof("======= GodelSchedulerPreemptionFramework: SelectCandidate: not usedCachedNominatedNodes")
 		candidates = pf.RunCandidatesSortingPlugins(candidates, nil)
 		return gs.selectCandidate(candidates, cachedNominatedNodes)
 	}
 
 	if candidate != nil {
-		// testing purpose
-		klog.Infof("======= GodelSchedulerPreemptionFramework: SelectCandidate: single candidate is not nil")
 		candidates = pf.RunCandidatesSortingPlugins(candidates, candidate)
 		if candidates[0].Name == candidate.Name {
 			return gs.selectCandidate(candidates, cachedNominatedNodes)
@@ -1350,8 +1329,6 @@ func (gs *podScheduler) SelectCandidate(
 			if c == nil {
 				break
 			}
-			// testing purpose
-			klog.Infof("======= GodelSchedulerPreemptionFramework: SelectCandidate =======")
 			candidates = pf.RunCandidatesSortingPlugins([]*framework.Candidate{lastCandidate}, c)
 			// can not confirm c is the best one
 			if reflect.DeepEqual(candidates[0], c) {
@@ -1380,8 +1357,6 @@ func (gs *podScheduler) SelectCandidate(
 			continue
 		}
 		checkedNode := candidates[0]
-		// testing purpose
-		klog.Infof("======= GodelSchedulerPreemptionFramework: SelectCandidate =======")
 		candidates = pf.RunCandidatesSortingPlugins(candidates[1:], checkedNode)
 		if candidates[0].Name == checkedNode.Name {
 			return gs.selectCandidate(candidates, cachedNominatedNodes)

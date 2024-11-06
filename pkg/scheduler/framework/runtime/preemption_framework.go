@@ -226,16 +226,11 @@ func (f *GodelSchedulerPreemptionFramework) RunCandidatesSortingPlugins(
 	candidate *framework.Candidate,
 ) []*framework.Candidate {
 	if candidate == nil {
-		// testing purpose
-		klog.Infof("======= GodelSchedulerPreemptionFramework: RunCandidatesSortingPlugins: single candidate is nil, candidates: %v", candidates)
-
 		sort.SliceStable(candidates, func(i, j int) bool {
 			return f.compareNominatedNodes(candidates[i], candidates[j])
 		})
 		return candidates
 	}
-	// testing purpose
-	klog.Infof("======= GodelSchedulerPreemptionFramework: RunCandidatesSortingPlugins: single candidate is not nil, candidates: %v", candidates)
 
 	for i, node := range candidates {
 		if !f.compareNominatedNodes(node, candidate) {

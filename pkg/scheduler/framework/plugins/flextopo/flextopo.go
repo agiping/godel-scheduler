@@ -52,7 +52,6 @@ func (flextopo *FlexibleTopology) PreFilterExtensions() framework.PreFilterExten
 }
 
 func (flextopo *FlexibleTopology) Filter(ctx context.Context, cycleState *framework.CycleState, pod *v1.Pod, nodeInfo framework.NodeInfo) *framework.Status {
-	// testing purpose
 	if !utilfeature.DefaultFeatureGate.Enabled(godelfeatures.FlexibleTopologySupport) {
 		return framework.NewStatus(framework.Error, fmt.Sprintf("featuregate %s is disabled", godelfeatures.FlexibleTopologySupport))
 	}

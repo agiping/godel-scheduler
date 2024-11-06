@@ -17,12 +17,10 @@ limitations under the License.
 package flextopo
 
 import (
-	"fmt"
 	"math"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/sets"
-	"k8s.io/klog/v2"
 
 	framework "github.com/kubewharf/godel-scheduler/pkg/framework/api"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/handle"
@@ -63,56 +61,30 @@ func (o *OptimalFlextopo) Name() string {
 }
 
 func (o *OptimalFlextopo) Compare(c1, c2 *framework.Candidate) int {
-	// testing purpose
-	klog.Infof("======= OptimalFlextopo Plugin: Comparing candidate==========")
-	victimNames1 := []string{}
-	for _, pod := range c1.Victims.Pods {
-		victimNames1 = append(victimNames1, pod.Name)
-	}
-	klog.Infof("======= Victims of candidate c1: %s: %v", c1.Name, victimNames1)
-
-	victimNames2 := []string{}
-	for _, pod := range c2.Victims.Pods {
-		victimNames2 = append(victimNames2, pod.Name)
-	}
-	klog.Infof("======= Victims of candidate c2: %s: %v", c2.Name, victimNames2)
-	// testing done
-
 	prioritySum1 := getPrioritySum(c1)
 	prioritySum2 := getPrioritySum(c2)
 	alignmentScore1 := getAlignmentScore(c1)
 	alignmentScore2 := getAlignmentScore(c2)
 	score1 := getScore(prioritySum1, alignmentScore1)
 	score2 := getScore(prioritySum2, alignmentScore2)
-	klog.Infof("======= OptimalFlextopo Plugin: Score of c1: %f, score of c2: %f", score1, score2)
 
 	// according to the selection policy of Godel, Candidate[0] is the best;
 	// thus, we should put the higher score at the left side.
 	if score1 > score2 {
-		klog.Infof("======= OptimalFlextopo Plugin: c1 is better than c2")
 		return 1
 	} else if score1 < score2 {
-		klog.Infof("======= OptimalFlextopo Plugin: c1 is worse than c2")
 		return -1
 	} else {
-		klog.Infof("======= OptimalFlextopo Plugin: c1 and c2 are the same")
 		return 0
 	}
 }
 
 func getAlignmentScore(c *framework.Candidate) int {
-	// when victims are in the same numa node, give 3 points
-	// when victims are in the same socket, give 2 points
-	// when victims are across different sockets, give 1 point
 	podNames := []string{}
 	for _, pod := range c.Victims.Pods {
 		podNames = append(podNames, pod.Name)
 	}
-	// testing purpose
-	klog.Infof("======= OptimalFlextopo Plugin: getAlignmentScore, flexTopo of candidate %s: %v", c.Name, c.FlexTopo)
 	podTopologyInfo := ftopoutil.GetPodNUMAAndSockets(c.FlexTopo, podNames)
-	// testing purpose
-	klog.Infof("======= OptimalFlextopo Plugin: podTopologyInfo of candidate %s: %v", c.Name, podTopologyInfo)
 	tScore := MaxTopologyScore
 	totalNumaSet := sets.NewString()
 	totalSocketSet := sets.NewString()
@@ -121,15 +93,6 @@ func getAlignmentScore(c *framework.Candidate) int {
 		totalNumaSet.Insert(podTopology["numas"]...)
 		totalSocketSet.Insert(podTopology["sockets"]...)
 	}
-	// testing purpose
-	victimNames := []string{}
-	for _, pod := range c.Victims.Pods {
-		victimNames = append(victimNames, pod.Name)
-	}
-	klog.Infof("======= Victims of candidate %s: %v", c.Name, victimNames)
-	klog.Infof("======= OptimalFlextopo Plugin: totalNumaSet: %v, totalSocketSet: %v", totalNumaSet, totalSocketSet)
-	fmt.Println("length of totalNumaSet: ", totalNumaSet.Len())
-	fmt.Println("length of totalSocketSet: ", totalSocketSet.Len())
 	if totalNumaSet.Len() > 1 {
 		tScore -= LossOfDiffNumasScore
 	}

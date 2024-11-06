@@ -24,7 +24,7 @@ type PodTopologyInfo map[string]map[string][]string
 func GetPodNUMAAndSockets(flexTopo *flextopov1alpha1.FlexTopo, podNames []string) PodTopologyInfo {
 	// Build maps for quick lookups
 	if flexTopo == nil {
-		klog.Infof("======= GetPodNUMAAndSockets: flexTopo is nil")
+		klog.Errorf("FlexTopo is nil, cannot get pod NUMA and socket info")
 		return nil
 	}
 	nodeMap := make(map[string]*flextopov1alpha1.FlexTopoNode)
