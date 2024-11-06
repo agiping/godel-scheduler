@@ -17,6 +17,7 @@ limitations under the License.
 package flextopo
 
 import (
+	"fmt"
 	"math"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -116,6 +117,15 @@ func getAlignmentScore(c *framework.Candidate) int {
 		totalNumaSet.Insert(podTopology["numas"]...)
 		totalSocketSet.Insert(podTopology["sockets"]...)
 	}
+	// testing purpose
+	victimNames := []string{}
+	for _, pod := range c.Victims.Pods {
+		victimNames = append(victimNames, pod.Name)
+	}
+	klog.Infof("======= Victims of candidate %s: %v", c.Name, victimNames)
+	klog.Infof("======= OptimalFlextopo Plugin: totalNumaSet: %v, totalSocketSet: %v", totalNumaSet, totalSocketSet)
+	fmt.Println("length of totalNumaSet: ", totalNumaSet.Len())
+	fmt.Println("length of totalSocketSet: ", totalSocketSet.Len())
 	if totalNumaSet.Len() > 1 {
 		tScore -= LossOfDiffNumasScore
 	}

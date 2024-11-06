@@ -1317,11 +1317,15 @@ func (gs *podScheduler) SelectCandidate(
 	usedCachedNominatedNodes bool,
 ) *framework.Candidate {
 	if !usedCachedNominatedNodes {
+		// testing purpose
+		klog.Infof("======= GodelSchedulerPreemptionFramework: SelectCandidate: not usedCachedNominatedNodes")
 		candidates = pf.RunCandidatesSortingPlugins(candidates, nil)
 		return gs.selectCandidate(candidates, cachedNominatedNodes)
 	}
 
 	if candidate != nil {
+		// testing purpose
+		klog.Infof("======= GodelSchedulerPreemptionFramework: SelectCandidate: single candidate is not nil")
 		candidates = pf.RunCandidatesSortingPlugins(candidates, candidate)
 		if candidates[0].Name == candidate.Name {
 			return gs.selectCandidate(candidates, cachedNominatedNodes)
@@ -1340,6 +1344,8 @@ func (gs *podScheduler) SelectCandidate(
 			if c == nil {
 				break
 			}
+			// testing purpose
+			klog.Infof("======= GodelSchedulerPreemptionFramework: SelectCandidate =======")
 			candidates = pf.RunCandidatesSortingPlugins([]*framework.Candidate{lastCandidate}, c)
 			// can not confirm c is the best one
 			if reflect.DeepEqual(candidates[0], c) {
@@ -1368,6 +1374,8 @@ func (gs *podScheduler) SelectCandidate(
 			continue
 		}
 		checkedNode := candidates[0]
+		// testing purpose
+		klog.Infof("======= GodelSchedulerPreemptionFramework: SelectCandidate =======")
 		candidates = pf.RunCandidatesSortingPlugins(candidates[1:], checkedNode)
 		if candidates[0].Name == checkedNode.Name {
 			return gs.selectCandidate(candidates, cachedNominatedNodes)
