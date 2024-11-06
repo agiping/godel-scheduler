@@ -620,6 +620,7 @@ func (gs *podScheduler) bestPreemptionWithFlexTopo(
 
 		preemptionState := framework.NewCycleState()
 		// We will not clone the NodeInfo here immediately, but only when needed within `selectVictimsOnNode`.
+		nodeInfoForFlexTopo := nodeInfo.Clone()
 		podGroups, fits := gs.selectVictimsOnNodeWithFlexTopo(ctx, state, preemptionState, fw, pfw, pod, nodeInfo)
 		if fits {
 			for _, pods := range podGroups {
@@ -630,7 +631,7 @@ func (gs *podScheduler) bestPreemptionWithFlexTopo(
 				c := &framework.Candidate{
 					Victims:  &victims,
 					Name:     nodeInfo.GetNodeName(),
-					FlexTopo: nodeInfo.GetFlexTopo(),
+					FlexTopo: nodeInfoForFlexTopo.GetFlexTopo(),
 				}
 
 				lock.Lock()
@@ -961,6 +962,9 @@ func (gs *podScheduler) selectVictimsOnNodeWithFlexTopo(
 	// This is for FlexTopo Filter plugin
 	removePodFromFlexTopo(nodeInfoCopy, potentialVictims)
 
+	// testing purpose
+	klog.Infof("======= After removing potentialVictims, check the nodeInfoCopy: %v", nodeInfoCopy)
+
 	for _, victim := range potentialVictims {
 		if err := removePod(ctx, stateCopy, pod, victim, nodeInfoCopy, fw); err != nil {
 			return nil, false
@@ -976,6 +980,9 @@ func (gs *podScheduler) selectVictimsOnNodeWithFlexTopo(
 		klog.Infof("======= Error is nil, but failed to select victims on node %s ==========", nodeName)
 		return nil, false
 	}
+
+	// testing purpose
+	klog.Infof("======= After removing potentialVictims, check the original nodeInfo: %v", nodeInfo)
 
 	// In the bellow, we try to find a set of minimum combinations of victims
 	// that can be preempted from the node.
