@@ -56,6 +56,11 @@ func (flextopo *FlexibleTopology) Filter(ctx context.Context, cycleState *framew
 	if !utilfeature.DefaultFeatureGate.Enabled(godelfeatures.FlexibleTopologySupport) {
 		return framework.NewStatus(framework.Error, fmt.Sprintf("featuregate %s is disabled", godelfeatures.FlexibleTopologySupport))
 	}
+	podFtopo := podutil.GetPodTopologyRequirements(pod)
+	// early return if the pod does not have any flextopo requirements
+	if podFtopo == "" {
+		return framework.NewStatus(framework.Success, "pod does not have any flextopo requirements")
+	}
 	// TODO(Ping Zhang): do necessary filtering here
 	resourceType, err := framework.GetPodResourceType(cycleState)
 	if err != nil {

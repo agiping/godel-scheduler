@@ -329,3 +329,12 @@ func IgnorePodsLimit(pod *v1.Pod) bool {
 	_, exist := pod.Annotations[IgnorePodsLimitAnnotationKey]
 	return exist
 }
+
+// GetPodTopologyRequirements extracts the FlexTopo alignment requirements from the pod annotations.
+func GetPodTopologyRequirements(pod *v1.Pod) (flextopoRequirements string) {
+	annotations := pod.GetAnnotations()
+	if annotations == nil {
+		return ""
+	}
+	return annotations[FlextopoRequirementAnnotationKey]
+}

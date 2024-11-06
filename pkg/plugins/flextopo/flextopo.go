@@ -177,7 +177,7 @@ func FeasibleFlexibleTopology(
 	podLister listerv1.PodLister,
 ) *framework.Status {
 	// Extract pod's FlexTopo alignment requirements from the pod annotation
-	flextopoRequirements := getPodTopologyRequirements(pod)
+	flextopoRequirements := podutil.GetPodTopologyRequirements(pod)
 
 	if flextopoRequirements == GuaranteedAlignment {
 		nodeFlexTopo := nodeInfo.GetFlexTopo()
@@ -205,6 +205,7 @@ func FeasibleFlexibleTopology(
 	}
 
 	// For neither guaranteed nor best-effort flextopo alignment requirements, we always return success.
+	// This would not be happen, but we keep it for robustness.
 	return framework.NewStatus(framework.Success, "neither guaranteed nor best-effort flextopo alignment requirements is requested")
 }
 
@@ -251,13 +252,4 @@ func (fg *FlexGraph) TryAlignOnSameSocket(cpuCoresNeeded int) bool {
 	// Otherwise, the pod can, at least, be aligned on the socket with the most hosted free CPU cores.
 	klog.V(4).InfoS("FlexTopo alignment can be satisfied on socket", "socket:", mostHostedFreeSocket)
 	return true
-}
-
-// getPodTopologyRequirements extracts the FlexTopo alignment requirements from the pod annotations.
-func getPodTopologyRequirements(pod *v1.Pod) (flextopoRequirements string) {
-	annotations := pod.GetAnnotations()
-	if annotations == nil {
-		return ""
-	}
-	return annotations[podutil.FlextopoRequirementAnnotationKey]
 }

@@ -28,9 +28,11 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
+	utilfeature "k8s.io/apiserver/pkg/util/feature"
 	"k8s.io/klog/v2"
 	utiltrace "k8s.io/utils/trace"
 
+	godelfeatures "github.com/kubewharf/godel-scheduler/pkg/features"
 	framework "github.com/kubewharf/godel-scheduler/pkg/framework/api"
 	"github.com/kubewharf/godel-scheduler/pkg/framework/utils"
 	"github.com/kubewharf/godel-scheduler/pkg/plugins/nodeports"
@@ -365,7 +367,25 @@ func (gs *podScheduler) runPreemption(ctx context.Context,
 	podProperty, _ := framework.GetPodProperty(state)
 
 	findCandidatesStart := time.Now()
-	candidates, err := gs.FindCandidates(ctx, f, pf, state, commonPreemptionState, pod, nodeSet, cachedNominatedNodes)
+
+	// TODO(Ping Zhang): Refactor this part
+	// When we use the FlexTopo based preemption, we need to find candidates with FlexTopo.
+	// The key difference with Godel's normal preemption is that,
+	// a single candidate node may offer multiple feasible preemption solutions
+	// by selecting different combinations of low-priority pods to preempt on the node.
+	// In Godel's normal preemption, minimum set of victims on the node is selected.
+	// In FlexTopo based preemption, we need to enumerate all feasible preemption solutions on the node,
+	// and select the best one.
+	var candidates []*framework.Candidate
+	flextopoRequirements := podutil.GetPodTopologyRequirements(pod)
+	if !utilfeature.DefaultFeatureGate.Enabled(godelfeatures.FlexibleTopologySupport) || flextopoRequirements == "" {
+		candidates, err = gs.FindCandidates(ctx, f, pf, state, commonPreemptionState, pod, nodeSet, cachedNominatedNodes)
+	} else {
+		// testing purpose
+		klog.Infof("======= Finding candidates with FlexTopo ==========")
+		candidates, err = gs.FindCandidatesWithFlexTopo(ctx, f, pf, state, commonPreemptionState, pod, nodeSet, cachedNominatedNodes)
+	}
+
 	if err != nil {
 		metrics.PreemptingStageLatencyObserve(podProperty, metrics.PreemptingFindCandidates, helper.SinceInSeconds(findCandidatesStart))
 		return "", nil, err
@@ -441,6 +461,26 @@ func (gs *podScheduler) FindCandidates(ctx context.Context,
 		return candidates, err
 	}
 	return nil, fmt.Errorf("unexpected candidate select policy: %s", candidateSelectPolicy)
+}
+
+func (gs *podScheduler) FindCandidatesWithFlexTopo(ctx context.Context,
+	f framework.SchedulerFramework, pf framework.SchedulerPreemptionFramework,
+	state, commonState *framework.CycleState, pod *v1.Pod, nodesList []framework.NodeInfo,
+	cachedNominatedNodes *framework.CachedNominatedNodes,
+) ([]*framework.Candidate, error) {
+	if status := f.RunPreFilterPlugins(ctx, state, pod); !status.IsSuccess() {
+		return nil, status.AsError()
+	}
+
+	if status := pf.RunClusterPrePreemptingPlugins(pod, state, commonState); !status.IsSuccess() {
+		return nil, status.AsError()
+	}
+
+	// We implement FlexTopo based preemption on the basis of Godel's bestPreemption policy,
+	// all nodes, and all combinations of victims on the same node, are considered.
+	// TODO(Ping Zhang): Optimize the performance for large-scale clusters.
+	candidates, err := gs.bestPreemptionWithFlexTopo(ctx, state, pod, nodesList, f, pf)
+	return candidates, err
 }
 
 func (gs *podScheduler) randomPreemption(
@@ -552,6 +592,59 @@ func (gs *podScheduler) bestPreemption(
 	stop = false
 	util.ParallelizeUntil(&stop, 32, len(nodesList), checkNode)
 	return candidates, nil
+}
+
+func (gs *podScheduler) bestPreemptionWithFlexTopo(
+	ctx context.Context, state *framework.CycleState,
+	pod *v1.Pod, nodesList []framework.NodeInfo,
+	fw framework.SchedulerFramework,
+	pfw framework.SchedulerPreemptionFramework,
+) ([]*framework.Candidate, error) {
+	var candidates []*framework.Candidate
+	var lock sync.Mutex
+	resourceType, _ := podutil.GetPodResourceType(pod)
+	partitionPriority := preemptionplugins.GetPodPartitionPriority(pod)
+	podResource, _, _ := framework.CalculateResource(pod)
+
+	var stop bool
+	checkNode := func(i int) {
+		nodeInfo := nodesList[i]
+		if nodeInfo == nil {
+			return
+		}
+
+		// Perform heuristic checks to terminate the preemption process early.
+		if !preemption.OccupiableResourcesCheck(partitionPriority, resourceType, podResource, nodeInfo) {
+			return
+		}
+
+		preemptionState := framework.NewCycleState()
+		// We will not clone the NodeInfo here immediately, but only when needed within `selectVictimsOnNode`.
+		podGroups, fits := gs.selectVictimsOnNodeWithFlexTopo(ctx, state, preemptionState, fw, pfw, pod, nodeInfo)
+		if fits {
+			for _, pods := range podGroups {
+				victims := framework.Victims{
+					Pods:            pods,
+					PreemptionState: preemptionState,
+				}
+				c := &framework.Candidate{
+					Victims:  &victims,
+					Name:     nodeInfo.GetNodeName(),
+					FlexTopo: nodeInfo.GetFlexTopo(),
+				}
+
+				lock.Lock()
+				candidates = append(candidates, c)
+				lock.Unlock()
+			}
+		}
+	}
+
+	// check all node list
+	stop = false
+	util.ParallelizeUntil(&stop, 32, len(nodesList), checkNode)
+	return candidates, nil
+
 }
 
 func (gs *podScheduler) betterPreemption(
@@ -741,8 +834,6 @@ func (gs *podScheduler) selectVictimsOnNode(
 		metrics.PreemptingFilterVictims, helper.SinceInSeconds(filterVictimsPodsStart))
 	// No potential victims are found, and so we don't need to evaluate the node again since its state didn't change.
 	if len(potentialVictims) == 0 {
-		// testing purpose
-		klog.Infof("======= No potential victims found by preemption.FilterVictimsPods() ==========")
 		return nil, false
 	}
 
@@ -757,23 +848,15 @@ func (gs *podScheduler) selectVictimsOnNode(
 	// Clone CycleState for PodAffinity plugin.
 	stateCopy := state.Clone()
 
-	// testing purpose
-	podNames := []string{}
-	for _, victim := range potentialVictims {
-		podNames = append(podNames, victim.Name)
-	}
-	klog.Infof("======= Potential victims are: %v", podNames)
+	// ATTENTION: we do not need to remove potentialVictims from the nodeInfoCopy now,
+	// because selectVictimsOnNode() will not be called during FlexTopo based preemption.
+	// Instead, selectVictimsOnNodeWithFlexTopo() will do that.
+	// However, we still keep this code for future refactoring.
 
-	// Update FlexTopo of the nodeInfoCopy
-	// before removing potentialVictims and checking that the preemptor can be scheduled
-	// This is for FlexTopo Filter plugin
-	// TODO(Ping Zhang): Clean code for this part
-	removePodFromFlexTopo(nodeInfoCopy, potentialVictims)
+	// removePodFromFlexTopo(nodeInfoCopy, potentialVictims)
 
 	for _, victim := range potentialVictims {
 		if err := removePod(ctx, stateCopy, pod, victim, nodeInfoCopy, fw); err != nil {
-			// testing purpose
-			klog.Infof("======= Failed to remove pod %s from node %s ==========", victim.Name, nodeName)
 			return nil, false
 		}
 	}
@@ -787,8 +870,6 @@ func (gs *podScheduler) selectVictimsOnNode(
 		if err != nil {
 			klog.InfoS("Failed to select victims on node", "node", nodeName, "err", err)
 		}
-		// testing purpose
-		klog.Infof("======= Error is nil, but failed to select victims on node %s ==========", nodeName)
 		return nil, false
 	}
 
@@ -815,13 +896,170 @@ func (gs *podScheduler) selectVictimsOnNode(
 			return nil, false
 		}
 	}
-	// testing purpose
-	podNames = []string{}
-	for _, pod := range victims {
-		podNames = append(podNames, pod.Name)
-	}
-	klog.Infof("======= Final victims are: %v", podNames)
+
 	return victims, true
+}
+
+// This function is built on the basis of selectVictimsOnNode,
+// but it takes flexTopo into consideration.
+func (gs *podScheduler) selectVictimsOnNodeWithFlexTopo(
+	ctx context.Context,
+	state *framework.CycleState,
+	preemptionState *framework.CycleState,
+	fw framework.SchedulerFramework,
+	pfw framework.SchedulerPreemptionFramework,
+	pod *v1.Pod,
+	nodeInfo framework.NodeInfo,
+) ([][]*v1.Pod, bool) {
+	var skipPlugins []string
+
+	nodeName := nodeInfo.GetNodeName()
+	if fits, _, statusMap, err := frameworkruntime.PodPassesFiltersOnNode(ctx, fw, state, pod, nodeInfo); fits {
+		if err != nil {
+			klog.InfoS("Failed to check if need to preempt victims on node", "node", nodeName, "err", err)
+		}
+		return nil, true
+	} else {
+		for name, status := range statusMap {
+			if status.IsSuccess() && pluginsSkipCheckingDuringPreemption.Has(name) {
+				skipPlugins = append(skipPlugins, name)
+			}
+		}
+	}
+
+	filterVictimsPodsStart := time.Now()
+	priority := preemptionplugins.GetPodPartitionPriority(pod)
+	potentialVictims := preemption.FilterVictimsPods(gs, pfw, state, preemptionState, nodeInfo, pod, math.MinInt64, priority, false)
+	podProperty, _ := framework.GetPodProperty(state)
+	metrics.PreemptingStageLatencyObserve(podProperty,
+		metrics.PreemptingFilterVictims, helper.SinceInSeconds(filterVictimsPodsStart))
+	if len(potentialVictims) == 0 {
+		klog.Infof("No potential victims found by preemption.FilterVictimsPods()")
+		return nil, false
+	}
+
+	podsCanNotBePreempted, _ := framework.GetPodsCanNotBePreempted(preemptionState)
+	podsCanNotBePreemptedSet := sets.NewString(podsCanNotBePreempted...)
+	sort.SliceStable(potentialVictims, func(i, j int) bool {
+		return moreImportantPod(potentialVictims[i], potentialVictims[j], podsCanNotBePreemptedSet)
+	})
+	// Clone NodeInfo here to perform `removePod`.
+	nodeInfoCopy := nodeInfo.Clone()
+	// TODO: revisit this.
+	// Clone CycleState for PodAffinity plugin.
+	stateCopy := state.Clone()
+
+	// testing purpose
+	podNames := []string{}
+	for _, victim := range potentialVictims {
+		podNames = append(podNames, victim.Name)
+	}
+	klog.Infof("======= Potential victims are: %v", podNames)
+
+	// Update FlexTopo of the nodeInfoCopy
+	// before removing potentialVictims and checking that the preemptor can be scheduled
+	// This is for FlexTopo Filter plugin
+	removePodFromFlexTopo(nodeInfoCopy, potentialVictims)
+
+	for _, victim := range potentialVictims {
+		if err := removePod(ctx, stateCopy, pod, victim, nodeInfoCopy, fw); err != nil {
+			return nil, false
+		}
+	}
+	// If the preemptor can not be scheduled after removing all the lower priority pods,
+	// The current node is not suitable for preemption.
+	if fits, _, _, err := frameworkruntime.PodPassesFiltersOnNode(ctx, fw, stateCopy, pod, nodeInfoCopy, skipPlugins...); !fits {
+		if err != nil {
+			klog.InfoS("Failed to select victims on node", "node", nodeName, "err", err)
+		}
+		// testing purpose
+		klog.Infof("======= Error is nil, but failed to select victims on node %s ==========", nodeName)
+		return nil, false
+	}
+
+	// In the bellow, we try to find a set of minimum combinations of victims
+	// that can be preempted from the node.
+	// We will try to remove one victim at a time from the node,
+	// and check if the preemptor pod can be scheduled.
+	// If it can, we will add this victim to the set of victims to be preempted.
+	// If it cannot, we will try to remove two victims at a time, and check again.
+	// We will keep doing this until we find a set of minimum combinations.
+	var victimCombinations [][]*v1.Pod
+
+	// Try from size = 1 to the maximum number of potential victims.
+	for size := 1; size <= len(potentialVictims); size++ {
+		combinations := getCombinations(potentialVictims, size)
+		var feasibleCombinations [][]*v1.Pod
+
+		for _, victims := range combinations {
+			nodeInfoCopy := nodeInfo.Clone()
+			stateCopy := state.Clone()
+
+			// update FlexTopo of the nodeInfoCopy for FlexTopo Filter plugin
+			removePodFromFlexTopo(nodeInfoCopy, victims)
+
+			// Remove victims from the node
+			for _, victim := range victims {
+				if err := removePod(ctx, stateCopy, pod, victim, nodeInfoCopy, fw); err != nil {
+					continue // If remove failed, skip this combination
+				}
+			}
+
+			// Check if the preemptor pod can be scheduled
+			if fits, _, _, _ := frameworkruntime.PodPassesFiltersOnNode(ctx, fw, stateCopy, pod, nodeInfoCopy, skipPlugins...); fits {
+				// It is enough to schedule the preemptor after removing the current combination
+				// (1) add the current combination to the feasible combinations
+				feasibleCombinations = append(feasibleCombinations, victims)
+				// (2) try the next combination at the current size.
+				// We need to gather all feasible combinations at the current size,
+				// because the minimum set of victims may not be unique.
+				continue
+			}
+		}
+
+		if len(feasibleCombinations) > 0 {
+			victimCombinations = feasibleCombinations
+			break // Stop searching for larger combinations after finding the minimum
+		}
+	}
+
+	if len(victimCombinations) == 0 {
+		return nil, false
+	}
+
+	// testing purpose
+	podCombNames := [][]string{}
+	for _, combination := range victimCombinations {
+		subCombNames := []string{}
+		for _, pod := range combination {
+			subCombNames = append(subCombNames, pod.Name)
+		}
+		podCombNames = append(podCombNames, subCombNames)
+	}
+	klog.Infof("======= Final victim combinations are: %v", podCombNames)
+
+	return victimCombinations, true
+}
+
+func getCombinations(pods []*v1.Pod, size int) [][]*v1.Pod {
+	var combinations [][]*v1.Pod
+	var comb []*v1.Pod
+	generateCombinations(pods, size, 0, comb, &combinations)
+	return combinations
+}
+
+func generateCombinations(pods []*v1.Pod, size, start int, comb []*v1.Pod, combinations *[][]*v1.Pod) {
+	if len(comb) == size {
+		temp := make([]*v1.Pod, size)
+		copy(temp, comb)
+		*combinations = append(*combinations, temp)
+		return
+	}
+	for i := start; i < len(pods); i++ {
+		comb = append(comb, pods[i])
+		generateCombinations(pods, size, i+1, comb, combinations)
+		comb = comb[:len(comb)-1]
+	}
 }
 
 func moreImportantPod(pi1, pi2 *v1.Pod, podsCanNotBePreempted sets.String) bool {

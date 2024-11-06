@@ -7246,3 +7246,57 @@ func constructCycleStateSkipSpecificStage(state *framework.CycleState, stage fra
 		}
 	}
 }
+
+func TestGetCombinations(t *testing.T) {
+	pod1 := &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "p1",
+		},
+	}
+	pod2 := &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "p2",
+		},
+	}
+	pod3 := &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "p3",
+		},
+	}
+	pod4 := &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "p4",
+		},
+	}
+	pods := []*v1.Pod{pod1, pod2, pod3, pod4}
+
+	tests := []struct {
+		name     string
+		pods     []*v1.Pod
+		size     int
+		expected int
+	}{
+		{"Size 1", pods, 1, 4},
+		{"Size 2", pods, 2, 6},
+		{"Size 3", pods, 3, 4},
+		{"Size 4", pods, 4, 1},
+		{"Size 5", pods, 5, 0}, // exceed the length of pods, should return 0
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			combinations := getCombinations(tt.pods, tt.size)
+			// only print names
+			for _, combination := range combinations {
+				podNames := []string{}
+				for _, pod := range combination {
+					podNames = append(podNames, pod.Name)
+				}
+				t.Logf("combination: %v", podNames)
+			}
+			if len(combinations) != tt.expected {
+				t.Errorf("expected %d combinations, got %d", tt.expected, len(combinations))
+			}
+		})
+	}
+}
