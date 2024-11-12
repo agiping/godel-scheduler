@@ -383,13 +383,13 @@ func (gs *podScheduler) runPreemption(ctx context.Context,
 		start := time.Now()
 		candidates, err = gs.FindCandidates(ctx, f, pf, state, commonPreemptionState, pod, nodeSet, cachedNominatedNodes)
 		complete := time.Now()
-		klog.InfoS("==== Complete find candidates", "pod", pod.Name, "duration(ms)", complete.Sub(start).Milliseconds())
+		klog.InfoS("==== Complete find candidates", "pod", pod.Name, "duration(us)", complete.Sub(start).Microseconds())
 	} else {
 		// evaluate purpose
 		start := time.Now()
 		candidates, err = gs.FindCandidatesWithFlexTopo(ctx, f, pf, state, commonPreemptionState, pod, nodeSet, cachedNominatedNodes)
 		complete := time.Now()
-		klog.InfoS("==== Complete find candidates with flex topo", "pod", pod.Name, "duration (ms)", complete.Sub(start).Milliseconds())
+		klog.InfoS("==== Complete find candidates with flex topo", "pod", pod.Name, "duration (us)", complete.Sub(start).Microseconds())
 	}
 
 	if err != nil {
