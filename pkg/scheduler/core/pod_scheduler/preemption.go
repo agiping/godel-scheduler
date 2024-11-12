@@ -379,9 +379,17 @@ func (gs *podScheduler) runPreemption(ctx context.Context,
 	var candidates []*framework.Candidate
 	flextopoRequirements := podutil.GetPodTopologyRequirements(pod)
 	if !utilfeature.DefaultFeatureGate.Enabled(godelfeatures.FlexibleTopologySupport) || flextopoRequirements == "" {
+		// evaluate purpose
+		start := time.Now()
 		candidates, err = gs.FindCandidates(ctx, f, pf, state, commonPreemptionState, pod, nodeSet, cachedNominatedNodes)
+		complete := time.Now()
+		klog.InfoS("==== Complete find candidates", "pod", pod.Name, "duration(ms)", complete.Sub(start).Milliseconds())
 	} else {
+		// evaluate purpose
+		start := time.Now()
 		candidates, err = gs.FindCandidatesWithFlexTopo(ctx, f, pf, state, commonPreemptionState, pod, nodeSet, cachedNominatedNodes)
+		complete := time.Now()
+		klog.InfoS("==== Complete find candidates with flex topo", "pod", pod.Name, "duration (ms)", complete.Sub(start).Milliseconds())
 	}
 
 	if err != nil {
@@ -443,7 +451,11 @@ func (gs *podScheduler) FindCandidates(ctx context.Context,
 		return nil, status.AsError()
 	}
 
-	candidateSelectPolicy := gs.GetCandidateSelectPolicy()
+	// candidateSelectPolicy := gs.GetCandidateSelectPolicy()
+
+	// For a fair comparison, we use the same candidate select policy for both godel normal preemption
+	// and flex topo based preemption.
+	candidateSelectPolicy := config.CandidateSelectPolicyBest
 	switch candidateSelectPolicy {
 	case config.CandidateSelectPolicyBest:
 		// check all nodes
