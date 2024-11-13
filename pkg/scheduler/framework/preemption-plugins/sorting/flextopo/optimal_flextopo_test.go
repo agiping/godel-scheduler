@@ -112,7 +112,7 @@ func TestGetAlignmentScore(t *testing.T) {
 		},
 	}
 	expectedScore := 7
-	score := getAlignmentScore(candidate)
+	score := GetAlignmentScore(candidate)
 	assert.Equal(t, expectedScore, score)
 
 	// Case 2: acceptable case, victims in different numa nodes but in the same socket
@@ -169,7 +169,7 @@ func TestGetAlignmentScore(t *testing.T) {
 		},
 	}
 	expectedScore = 12
-	score = getAlignmentScore(candidate)
+	score = GetAlignmentScore(candidate)
 	assert.Equal(t, expectedScore, score)
 
 	// Case 3: the best case, victims in the same numa node
@@ -224,7 +224,7 @@ func TestGetAlignmentScore(t *testing.T) {
 		},
 	}
 	expectedScore = 15
-	score = getAlignmentScore(candidate)
+	score = GetAlignmentScore(candidate)
 	assert.Equal(t, expectedScore, score)
 }
 
@@ -339,8 +339,8 @@ func TestCompare(t *testing.T) {
 	}
 	expectedScore1 := 7
 	expectedScore2 := 12
-	assert.Equal(t, expectedScore1, getAlignmentScore(c1))
-	assert.Equal(t, expectedScore2, getAlignmentScore(c2))
+	assert.Equal(t, expectedScore1, GetAlignmentScore(c1))
+	assert.Equal(t, expectedScore2, GetAlignmentScore(c2))
 
 	result := plugin.Compare(c1, c2)
 	assert.Equal(t, 1, result)

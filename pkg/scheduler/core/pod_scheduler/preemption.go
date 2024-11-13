@@ -50,6 +50,7 @@ import (
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/plugins/volumebinding"
 	preemption "github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/preemption-plugins"
 	preemptionplugins "github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/preemption-plugins"
+	optimalflextopo "github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/preemption-plugins/sorting/flextopo"
 	frameworkruntime "github.com/kubewharf/godel-scheduler/pkg/scheduler/framework/runtime"
 	"github.com/kubewharf/godel-scheduler/pkg/scheduler/metrics"
 	"github.com/kubewharf/godel-scheduler/pkg/util"
@@ -414,6 +415,11 @@ func (gs *podScheduler) runPreemption(ctx context.Context,
 	if status := pf.RunNodePostPreemptingPlugins(pod, bestCandidate.Victims.Pods, state, commonPreemptionState); !status.IsSuccess() {
 		return "", nil, status.AsError()
 	}
+
+	// evaluate purpose
+	// check if the victims on the candidate node acrossing socket
+	alignmentScore := optimalflextopo.GetAlignmentScore(bestCandidate)
+	klog.Infof("==== Alignment score of pod: %s, score: %d", pod.Name, alignmentScore)
 
 	return bestCandidate.Name, bestCandidate.Victims, nil
 }

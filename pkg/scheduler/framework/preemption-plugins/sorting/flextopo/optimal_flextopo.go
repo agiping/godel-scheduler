@@ -63,8 +63,8 @@ func (o *OptimalFlextopo) Name() string {
 func (o *OptimalFlextopo) Compare(c1, c2 *framework.Candidate) int {
 	prioritySum1 := getPrioritySum(c1)
 	prioritySum2 := getPrioritySum(c2)
-	alignmentScore1 := getAlignmentScore(c1)
-	alignmentScore2 := getAlignmentScore(c2)
+	alignmentScore1 := GetAlignmentScore(c1)
+	alignmentScore2 := GetAlignmentScore(c2)
 	score1 := getScore(prioritySum1, alignmentScore1)
 	score2 := getScore(prioritySum2, alignmentScore2)
 
@@ -79,7 +79,7 @@ func (o *OptimalFlextopo) Compare(c1, c2 *framework.Candidate) int {
 	}
 }
 
-func getAlignmentScore(c *framework.Candidate) int {
+func GetAlignmentScore(c *framework.Candidate) int {
 	podNames := []string{}
 	for _, pod := range c.Victims.Pods {
 		podNames = append(podNames, pod.Name)
