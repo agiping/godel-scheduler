@@ -1036,15 +1036,15 @@ func (gs *podScheduler) selectVictimsOnNodeWithFlexTopo(
 	}
 
 	// keep by far
-	podCombNames := [][]string{}
-	for _, combination := range victimCombinations {
-		subCombNames := []string{}
-		for _, pod := range combination {
-			subCombNames = append(subCombNames, pod.Name)
-		}
-		podCombNames = append(podCombNames, subCombNames)
-	}
-	klog.Infof("Final victim combinations selected on node %s are: %v", nodeName, podCombNames)
+	// podCombNames := [][]string{}
+	// for _, combination := range victimCombinations {
+	// 	subCombNames := []string{}
+	// 	for _, pod := range combination {
+	// 		subCombNames = append(subCombNames, pod.Name)
+	// 	}
+	// 	podCombNames = append(podCombNames, subCombNames)
+	// }
+	// klog.Infof("Final victim combinations selected on node %s are: %v", nodeName, podCombNames)
 
 	return victimCombinations, true
 }
