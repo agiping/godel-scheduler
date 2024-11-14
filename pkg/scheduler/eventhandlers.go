@@ -216,7 +216,7 @@ func (sched *Scheduler) updateNodeInCache(oldObj, newObj interface{}) {
 		return
 	}
 
-	klog.V(3).InfoS("Detected an update event for node", "node", oldNode.Name)
+	klog.V(6).InfoS("Detected an update event for node", "node", oldNode.Name)
 
 	if err := sched.commonCache.UpdateNode(oldNode, newNode); err != nil {
 		klog.InfoS("Failed to update node in scheduler cache", "err", err)
@@ -307,7 +307,7 @@ func (sched *Scheduler) updateNMNodeInCache(oldObj, newObj interface{}) {
 		return
 	}
 
-	klog.V(3).InfoS("Detected an update event for node", "nmnode", oldNMNode.Name)
+	klog.V(6).InfoS("Detected an update event for node", "nmnode", oldNMNode.Name)
 
 	if err := sched.commonCache.UpdateNMNode(oldNMNode, newNMNode); err != nil {
 		klog.InfoS("Failed to update NMNode in Scheduler cache", "err", err)
