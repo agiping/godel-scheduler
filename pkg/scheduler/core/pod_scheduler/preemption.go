@@ -996,7 +996,7 @@ func (gs *podScheduler) selectVictimsOnNodeWithFlexTopo(
 	// Try from size = 1 to the maximum number of potential victims.
 	for size := 1; size <= len(potentialVictims); size++ {
 		combinations := getCombinations(potentialVictims, size)
-		var feasibleCombinations [][]*v1.Pod
+		//var feasibleCombinations [][]*v1.Pod
 
 		for _, victims := range combinations {
 			nodeInfoCopy := nodeInfo.Clone()
@@ -1016,20 +1016,21 @@ func (gs *podScheduler) selectVictimsOnNodeWithFlexTopo(
 			if fits, _, _, _ := frameworkruntime.PodPassesFiltersOnNode(ctx, fw, stateCopy, pod, nodeInfoCopy, skipPlugins...); fits {
 				// It is enough to schedule the preemptor after removing the current combination
 				// (1) add the current combination to the feasible combinations
-				feasibleCombinations = append(feasibleCombinations, victims)
+				victimCombinations = append(victimCombinations, victims)
 				// (2) try the next combination at the current size.
 				// We need to gather all feasible combinations at the current size,
 				// because the minimum set of victims may not be unique.
-				continue
+				// continue
 			}
 		}
 
-		if len(feasibleCombinations) > 0 {
-			victimCombinations = feasibleCombinations
-			break // Stop searching for larger combinations after finding the minimum
-		}
+		// if len(feasibleCombinations) > 0 {
+		// 	victimCombinations = feasibleCombinations
+		// 	break // Stop searching for larger combinations after finding the minimum
+		// }
 	}
 
+	//victimCombinations = feasibleCombinations
 	if len(victimCombinations) == 0 {
 		return nil, false
 	}
